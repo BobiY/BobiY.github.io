@@ -1,0 +1,33 @@
+---
+layout: default
+title: webpack基础
+---
+<link rel="stylesheet" href="{{ site.baseurl }}/assets/style.css">
+<link rel="stylesheet" href="{{ site.baseurl }}/assets/webpack.css">
+<h2>{{ page.title }}</h2>
+<p>我的第一篇文章</p>
+<p>{{ page.date | date_to_string }}</p>
+
+<h3>安装Nodejs</h3>
+
+<p>webpack是一个前端流行的打包和编译工具，在学习以前，需要你确认你的电脑上已经安装好 nodejs</p>
+
+<h3>下面，我们将以一个简单的路由项目来展示webpack的用法</h3>
+
+<p>首先，你需要找个目录，新建一个加 simple 的文件夹，我们的示例项目将会在这里面展开.下面是目录结构，仅供参考</p>
+<p class="back">
+    ├── dist                      打包输出目录, 只需部署这个目录到生产环境
+    ├── package.json              项目配置信息
+    ├── node_modules              npm安装的依赖包都在这里面
+    ├── src                       我们的源代码
+    │   ├── components            可以复用的模块放在这里面
+    │   ├── index.html            入口html
+    │   ├── index.js              入口js
+    │   ├── libs                  不在npm和git上的库扔这里
+    │   └── views                 页面放这里
+    └── webpack.config.js         webpack 配置文件
+</p>
+
+<p>然后在你刚才建的simple文件夹中打开命令行，输入 npm init</p>
+<p>这时会生成一些项目的配置信息，这里可以一路回车下去，最终，会将这些信息生成到 package.json 的文件中</p>
+
