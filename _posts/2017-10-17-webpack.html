@@ -3,7 +3,7 @@ layout: default
 title: webpack基础
 ---
 <link rel="stylesheet" href="{{ site.baseurl }}/assets/style.css">
-<link rel="stylesheet" href="{{ site.baseurl }}/assets/webpack.css">
+<link rel="stylesheet" href="{{ site.baseurl }}/css/webpack.css">
 <h2>{{ page.title }}</h2>
 <p>我的第一篇文章</p>
 <p>{{ page.date | date_to_string }}</p>
@@ -16,16 +16,16 @@ title: webpack基础
 
 <p>首先，你需要找个目录，新建一个加 simple 的文件夹，我们的示例项目将会在这里面展开.下面是目录结构，仅供参考</p>
 <p class="back">
-    ├── dist                      打包输出目录, 只需部署这个目录到生产环境<br />
-    ├── package.json              项目配置信息 <br />
-    ├── node_modules              npm安装的依赖包都在这里面 <br />
-    ├── src                       我们的源代码 <br />
-    │   ├── components            可以复用的模块放在这里面 <br />
-    │   ├── index.html            入口html <br />
-    │   ├── index.js              入口js <br />
-    │   ├── libs                  不在npm和git上的库扔这里 <br />
-    │   └── views                 页面放这里 <br />
-    └── webpack.config.js         webpack 配置文件 <br />
+    ├── dist &nbsp; &nbsp;&nbsp;                    打包输出目录, 只需部署这个目录到生产环境<br />
+    ├── package.json  &nbsp;&nbsp;&nbsp;            项目配置信息 <br />
+    ├── node_modules  &nbsp;&nbsp;&nbsp;            npm安装的依赖包都在这里面 <br />
+    ├── src      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                 我们的源代码 <br />
+    │   ├── components   &nbsp;&nbsp;&nbsp;&nbsp;         可以复用的模块放在这里面 <br />
+    │   ├── index.html   &nbsp;&nbsp;&nbsp;&nbsp;         入口html <br />
+    │   ├── index.js   &nbsp;&nbsp;&nbsp;&nbsp;           入口js <br />
+    │   ├── libs       &nbsp;&nbsp;&nbsp;&nbsp;           不在npm和git上的库扔这里 <br />
+    │   └── views        &nbsp;&nbsp;&nbsp;&nbsp;           页面放这里 <br />
+    └── webpack.config.js   &nbsp;&nbsp;&nbsp;&nbsp;        webpack 配置文件 <br />
 </p>
 
 <p>然后在你刚才建的simple文件夹中打开命令行，输入 npm init</p>
