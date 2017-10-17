@@ -8,11 +8,18 @@ title: 我的Blog
 <ul class="ul">
 {% for post in paginator.posts %}
   <li class = "li">
-  <h1><a href="{{ post.url }}">{{ post.title }}</a></h1>
+  <h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
   <p class="author">
     <span class="date">{{ post.date }}</span>
   </p>
    </li>
+{% endfor %}
+  
+  <h1>随笔分类</h1>
+{% for category in site.categories %}
+<ul>
+    <li><a href="{{ site.baseurl}}/category/{{ category.first }}.html">{{category.first}}（{{category.last.size}}）</a></li>
+</ul>
 {% endfor %}
 </ul>  
 {% if paginator.total_pages > 1 %}
