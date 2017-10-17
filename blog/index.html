@@ -7,12 +7,14 @@ title: 我的Blog
 <p class="pTit">最新文章</p>
 <ul class="ul">
 {% for post in paginator.posts %}
+  <li class = "li">
   <h1><a href="{{ post.url }}">{{ post.title }}</a></h1>
   <p class="author">
     <span class="date">{{ post.date }}</span>
   </p>
+   </li>
 {% endfor %}
-  
+</ul>  
 {% if paginator.total_pages > 1 %}
 <div class="pagination">
   {% if paginator.previous_page %}
