@@ -1,6 +1,37 @@
 
 body{
-    color: #C7EDCC;
-    width: 100%;
-    
+    background: #C7EDCC;
+    width: 100%;  
+}
+
+.app{
+    width: 70%;
+    margin: 0 auto;
+    color: #666;
+}
+
+.h2{
+    text-align: center;
+    border-bottom: 1px solid #d3d3d3
+}
+
+.pTit{
+    font-size: 1.8em;
+    clear: both;
+    font-weight: bold;
+    padding: 0.3em 0.5em;
+    margin: 0.5em 0.4em 0.1em 0.4em;
+
+}
+
+.ul{
+    list-style-type: square;
+    margin-left: 1em;
+    border-top:1px solid #d3d3d3
+}
+
+.li{
+    list-style-type: square;
+    font-size: 1.6em;
+    line-height: 220%;
 }
