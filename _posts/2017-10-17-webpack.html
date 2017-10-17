@@ -3,7 +3,7 @@ layout: default
 title: webpack基础
 ---
 <link rel="stylesheet" href="{{ site.baseurl }}/assets/style.css">
-<link rel="stylesheet" href="{{ site.baseurl }}/assets/webpack.css">
+<link rel="stylesheet" href="{{ site.baseurl }}/css/webpack.css">
 <h2>{{ page.title }}</h2>
 <p>我的第一篇文章</p>
 <p>{{ page.date | date_to_string }}</p>
@@ -16,16 +16,16 @@ title: webpack基础
 
 <p>首先，你需要找个目录，新建一个加 simple 的文件夹，我们的示例项目将会在这里面展开.下面是目录结构，仅供参考</p>
 <p class="back">
-    ├── dist                      打包输出目录, 只需部署这个目录到生产环境
-    ├── package.json              项目配置信息
-    ├── node_modules              npm安装的依赖包都在这里面
-    ├── src                       我们的源代码
-    │   ├── components            可以复用的模块放在这里面
-    │   ├── index.html            入口html
-    │   ├── index.js              入口js
-    │   ├── libs                  不在npm和git上的库扔这里
-    │   └── views                 页面放这里
-    └── webpack.config.js         webpack 配置文件
+    ├── dist &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                    打包输出目录, 只需部署这个目录到生产环境<br />
+    ├── package.json  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;            项目配置信息 <br />
+    ├── node_modules  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;            npm安装的依赖包都在这里面 <br />
+    ├── src      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                 我们的源代码 <br />
+    │   ├── components   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;         可以复用的模块放在这里面 <br />
+    │   ├── index.html   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;         入口html <br />
+    │   ├── index.js   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;           入口js <br />
+    │   ├── libs       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          不在npm和git上的库扔这里 <br />
+    │   └── views        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;           页面放这里 <br />
+    └── webpack.config.js   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;        webpack 配置文件 <br />
 </p>
 
 <p>然后在你刚才建的simple文件夹中打开命令行，输入 npm init</p>
@@ -33,6 +33,21 @@ title: webpack基础
 <h3 class="title">给项目加上语法报错和代码规范检查</h3>
 <p>这里要安装 esLint 来对你的代码的正确性做出判断，这个检测对于新手来说不太友好，往往会产生意想不到的报错，虽然只是你书写的 js 语法部分，当然，现在的一些编辑器也有同样的功能</p>
 
+<p class="back">
+    npm install eslint eslint-config-enough eslint-loader --save-dev
+</p>
+<p>
+    npm 允许你一次安装多个包，这些包的名字用空格隔开即可，这些包会被安装进 node_modules 目录下
+</p>
+<p>
+    这里说一下 --save-dev 和 --save 的异同：&nbsp;&nbsp;&nbsp; --save-dev会把安装的包和版本号记录到package.json中的devDependencies对象中, 还有一个--save, 会记录到dependencies对象中, 它们的区别, 我们可以先简单的理解为打包工具和测试工具用到的包使用--save-dev存到devDependencies, 比如eslint, webpack. 浏览器中执行的js用到的包存到dependencies, 比如jQuery等. 那么它们用来干嘛的? 
+</p>
+<p>
+    因为有些npm包安装是需要编译的, 那么导致windows/mac/linux上编译出的可执行文件是不同的, 也就是无法通用, 因此我们在提交代码到git上去的时候, 一般都会在.gitignore里指定忽略node_modules目录和里面的文件, 这样其他人从git上拉下来的项目是没有node_modules目录的, 这时我们需要运行
+</p>
+<p class="back">
+    npm install
+</p>
 
 
 
