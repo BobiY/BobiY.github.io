@@ -1,13 +1,12 @@
 
+p{
+    line-height: 1;
+}
+
 .back{
     color: #fff;
     background: #000;
     margin: 10px 0;
-<<<<<<< HEAD
-}
-
-=======
     padding: 30px 0 30px 30px;
     width: 80%;
 }
->>>>>>> 8a67321633059fb5a4772ffb5b8ed690b4897442
