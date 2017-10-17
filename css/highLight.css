@@ -6,6 +6,7 @@
     font-size: 16px;
     font-weight: 600;
     padding: 30px;
+    line-height: 2;
 }
 
 
@@ -170,9 +171,6 @@
   color: #ffffff;
 }
 .highlight .w {
-  color: #ffffff;
-}
-.highlight {
   color: #ffffff;
 }
 .highlight .n, .highlight .py, .highlight .nx {

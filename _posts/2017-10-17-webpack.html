@@ -55,19 +55,17 @@ title: webpack基础
 <p>
     这里eslint-config-enough是配置文件, 它规定了代码规范, 要使它生效, 我们要在package.json中添加内容:
 </p>
-<p class="back">
-      {% highlight javascript %}
-      {
-        "eslintConfig": {
-          "extends": "enough",
-          "env": {
-            "browser": true,
-            "node": true
-          }
-        }
-      }
-      {% endhighlight %}
-</p>
+{% highlight javascript %}
+{
+"eslintConfig": {
+    "extends": "enough",
+    "env": {
+    "browser": true,
+    "node": true
+    }
+}
+}
+{% endhighlight %}
 <p class="tip">* esLint 刚开始使用时会不适应，而且也不是必须的，这步可以考虑先跳过，熟悉后再进行配置</p>
 <p>
     下面需要写几个必要的页面，以确保我们的应用能跑起来
