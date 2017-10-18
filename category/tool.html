@@ -1,8 +1,16 @@
 ---
-layout: default
+layout: pages
 title: 我的Blog
 ---
 <link rel="stylesheet" href="{{ site.baseurl }}/assets/style.css">
-<h2 class="h2">
-    <a href="blog/">我的Blog</a>
-</h2>
+{% for category in site.categories %}
+{% if category == "tool" %}
+<h2>{{ category | first }}</h2>
+</span>{{ category | last | size }}</span>
+<ul class="arc-list">
+    {% for post in category.last %}
+        <li>{{ post.date | date:"%d/%m/%Y"}}<a href="{{ post.url }}">{{ post.title }}</a></li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endfor %}
