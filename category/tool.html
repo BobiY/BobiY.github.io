@@ -4,7 +4,7 @@ title: 我的Blog
 ---
 <link rel="stylesheet" href="{{ site.baseurl }}/assets/style.css">
 {% for category in site.categories %}
-{% if category == "tool" %}
+{% if category == tool %}
 <h2>{{ category | first }}</h2>
 </span>{{ category | last | size }}</span>
 <ul class="arc-list">
