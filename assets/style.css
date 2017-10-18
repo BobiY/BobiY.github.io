@@ -3,7 +3,9 @@
     padding: 0;
 }
 
-
+p{
+    margin: 10px 0;
+}
 body{
     background: #C7EDCC;
 }

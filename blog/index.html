@@ -2,21 +2,30 @@
 layout: default
 title: 我的Blog
 ---
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <link rel="stylesheet" href="{{ site.baseurl }}/assets/style.css">
+<link rel="stylesheet" href="{{ site.baseurl }}/bower_components/bootstrap/bootstrap.min.css">
+<div class="container">
 <h2 class="h2">{{ page.title }}</h2>
 <p class="pTit">最新文章</p>
-<ul class="ul">
+<ul class="ul list-group">
 {% for post in paginator.posts %}
-<li>{{ post.date | date_to_string }} <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></li>
+<li class="list-group-item">{{ post.date | date_to_string }} <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></li>
 {% endfor %}
 </ul>
-  <h1>随笔分类</h1>
+<div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">文章分类</h3>
+    </div>
+    <div class="panel-body">
 {% for category in site.categories %}
 <ul>
     <li><a href="{{ site.baseurl}}/category/{{ category.first }}.html">{{category.first}}（{{category.last.size}}）</a></li>
 </ul>
 {% endfor %}
-</ul>  
+  </div>
+</div>
+
 {% if paginator.total_pages > 1 %}
 <div class="pagination">
   {% if paginator.previous_page %}
@@ -42,3 +51,4 @@ title: 我的Blog
   {% endif %}
 </div>
 {% endif %}
+</div>
