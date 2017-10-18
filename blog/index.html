@@ -2,30 +2,16 @@
 layout: default
 title: 我的Blog
 ---
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <link rel="stylesheet" href="{{ site.baseurl }}/assets/style.css">
 <link rel="stylesheet" href="{{ site.baseurl }}/bower_components/bootstrap/dist/css/bootstrap.min.css">
-<div class="container">
-<h2 class="h2">{{ page.title }}</h2>
+<div class="container row">
+<div class=".col-md-8">
 <p class="pTit">最新文章</p>
 <ul class="ul list-group">
 {% for post in paginator.posts %}
 <li class="list-group-item">{{ post.date | date_to_string }} <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></li>
 {% endfor %}
 </ul>
-<div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">文章分类</h3>
-    </div>
-    <div class="panel-body">
-{% for category in site.categories %}
-<ul>
-    <li><a href="{{ site.baseurl}}/category/{{ category.first }}.html">{{category.first}}（{{category.last.size}}）</a></li>
-</ul>
-{% endfor %}
-  </div>
-</div>
-
 {% if paginator.total_pages > 1 %}
 <div class="pagination">
   {% if paginator.previous_page %}
@@ -51,4 +37,19 @@ title: 我的Blog
   {% endif %}
 </div>
 {% endif %}
+</div>
+<div class=".col-md-4">
+<div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">文章分类</h3>
+    </div>
+    <div class="panel-body">
+{% for category in site.categories %}
+<ul>
+    <li><a href="{{ site.baseurl}}/category/{{ category.first }}.html">{{category.first}}（{{category.last.size}}）</a></li>
+</ul>
+{% endfor %}
+  </div>
+</div>
+</div>
 </div>
