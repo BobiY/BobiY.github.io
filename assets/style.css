@@ -37,7 +37,6 @@ body{
 
 .li{
     list-style-type: square;
-    font-size: 1.6em;
     line-height: 220%;
 }
 
@@ -49,6 +48,5 @@ ul{
 
 li{
     list-style-type: square;
-    font-size: 1.6em;
     line-height: 220%;
 }
