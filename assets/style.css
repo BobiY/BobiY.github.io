@@ -34,3 +34,15 @@ body{
     font-size: 1.6em;
     line-height: 220%;
 }
+
+ul{
+    list-style-type: square;
+    margin-left: 1em;
+    border-top:1px solid #d3d3d3
+}
+
+li{
+    list-style-type: square;
+    font-size: 1.6em;
+    line-height: 220%;
+}
