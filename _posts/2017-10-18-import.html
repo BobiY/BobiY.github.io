@@ -89,12 +89,61 @@ export a;
 <p>
     export 在导出接口的时候，必须与模块内部的变量具有一一对应的关系。直接导出 1 没有任何意义，也不可能在 import 是有变量与之对应。
     export a 看着成立，但是 a 的值是一个数字，根本无法完成结构，因此必须写成 export { a } 的形式。即使 a 的值是一个 function。
-    最后，建议你在文件的组后导出接口。 
+    最后，建议你在文件的最后导出接口。 
 </p>
 {% highlight javascript %}
 export {a,b,c,d}
-{% endhighlight %
-}
+{% endhighlight %}
+<h3>
+    import 导入模块    
+</h3>  
+<p>
+    import 与 require 的不同之处在于，import 导入模块必须写在文件的头部，如果你写在其他位置，就会报错。下面是几个 import 导入模块的示例
+</p>
+{% highlight javascript %}
+import $ from 'jquery';
+import * as _ from "_";
+import { a,b,c } from "./a";
+import { default as a,a as b } from "./a";
+{% endhighlight %}
+<p>
+    这里是一些基础的用法，花括号里的变量是与 export 暴露出来的变量一一对用的。当然，你也应该知道这是 ES6 解构赋值
+</p>
+<h3>
+    as 关键字
+</h3>
+<p>
+    as 简单来说就是取别名，就像你在导入模块时你可以使用 as 为这个模块暴露出来的变量取一个别名，但是需要注意的是 as 前的变量一定跟你暴露的变量对应
+</p>
+<h3>
+    default 关键字
+</h3>
+<p>
+    default 在暴露模块时，表示模块默认暴露的东西
+</p>
+{% highlight javascript %}
+export default function aa(){};
+
+//相当于
+function aa(){}
+export { aa as default  };
+{% endhighlight %}
+<p>
+    在 import 导入模块时：
+</p>
+{% highlight javascript %}
+import a from "./a";
+
+// 相当于
+import { default as a  } from "./a"
+{% endhighlight %}
+
+<h3>
+    * 符号
+</h3>
+<p>
+    这个符号代表着全部，只有在 import 时可以使用，一般用于导出所有变量，并且起一个别名
+</p>
 
 <p style = "text-align:center;">
     <a href="/category/js.html">
