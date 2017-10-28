@@ -1,0 +1,308 @@
+---
+layout: pages
+title: 关于 this
+category: js
+---
+<link rel="stylesheet" href="{{ site.baseurl }}/assets/style.css">
+<link rel="stylesheet" href="{{ site.baseurl }}/css/helloWorld.css">
+<h2>{{ page.title }}</h2>
+<p> this 的初步探索</p>
+<p>{{ page.date | date_to_string }}</p>
+<h3>为什么要用 this </h3>
+<p>
+    this 提供了一种更优雅的方式来隐式“传递”一个对象的引用，因此可以将 API 设计得更加简介易于复用。
+</p>
+<h3>
+    对于 this 得误解
+</h3>
+<p>
+    1.指向自身 <br>
+    2.指向函数得作用域
+</p>
+<h3>
+    this 到底是什么
+</h3>
+<p>
+    1.this 是在运行时进行绑定得，并不是编写时绑定，它的上下文取决于函数调用时的各种条件。this 的绑定和函数声明的位置没有任何关系，只取决于函数的调用方式。
+</p>
+<p>
+    2.当一个函数被调用时，会创建一个活动记录（又是也叫做执行上下文）。这个记录包含函数再哪里被调用，函数的调用方法，传入的参数等信息。this 就是这个记录的其中一个属性，会在函数执行的过程中用到。
+</p>
+<h2>
+    this 全面解析
+</h2>
+<h3>
+    绑定规则
+</h3>
+<h4>
+    1.默认绑定
+</h4>
+<p>
+    这是函数最常用的调用类型：独立函数调用。可以把这条规则看作是无法应用其他类型规则是的默认规则。
+</p>
+{% highlight javascript %}
+function foo(){
+    condole.log( this.a );
+}
+
+var a = 2;
+foo() // 2
+{% endhighlight %}
+<p>
+    上面的例子就是使用默认绑定，foo() 运行时，this 被绑定到 window 上。但是需要注意的是，如果使用严格模式（ strict code ），那么全局对象将无法使用默认绑定，因此 this 会绑定到 undefined：（ 注：是 foo() 函数内部使用严格模式 ）
+</p>
+{% highlight javascript %}
+function foo(){
+    "use strict"
+    console.log( this.a );
+}
+var a = 2;
+foo() // TypeError:this is undefined
+{% endhighlight %}
+<h4>
+    2.隐式绑定
+</h4>
+<p>
+    隐式绑定其实也很常见，看下面例子,这是最典型的隐式绑定方式：
+</p>
+{% highlight javascript %}
+function foo(){
+    console.log( this.a );
+}
+var obj = { a:2,foo:foo };
+obj.foo(); // 2
+{% endhighlight %}
+<p>
+    另一条需要考虑的规则是调用位置是否有上下文对象或者说是否被某个对象拥有或者包含，不过这种说法可能会造成一些误解。
+</p>
+<p>
+    隐式绑定会存在一些问题：
+</p>
+{% highlight javascript %}
+function foo(){
+    console.log( this.a );
+}
+var obj = { a:2,foo:foo };
+var bar = obj.foo; // 函数别名
+var a = "oops,global";
+bar(); // "oops,global"
+{% endhighlight %}
+<p>
+    虽然 bar 是 obj.foo 的一个引用，但是实际上它引用的是 foo 函数本身，因此 bar() 其实是不带任何修饰的调用，因此应用了默认绑定。
+</p>
+<p>
+    一种更微妙，更常见并出乎意料的情况发生在传入回调函数时：
+</p>
+{% highlight javascript %}
+function foo(){
+    console.log( this.a );
+}
+
+function doFoo(fn){
+    fn() // <== 调用位置，引用的是 foo
+}
+var obj = { a:2,foo:foo };
+var a = "oops,global";
+doFoo(obj.foo) // "oops,global"
+{% endhighlight %}
+<p>
+    参数传递其实是一种隐式赋值，因此我们传入函数时也会被隐式赋值
+</p>
+<p style = "text-align:center;">
+    <a href="/category/js.html">
+        返回此文章的分类
+    </a>
+</p>
+<h4>
+    3.显式绑定
+</h4>
+<p>
+    这种绑定方式是我们显式的调用函数的方法去改变 this 的指向，这种方式是很显而易见的 this 的指向
+</p>
+<p>
+    显式绑定的几种方式 call()  apply()  bind()
+</p>
+<h4>
+    4.new 绑定
+</h4>
+<p>
+    使用 new 来调用函数，或者说发生构造函数调用时，会自动执行下面的操作
+</p>
+<p>
+    1. 创建（或者说构造）一个全新的对象<br>
+    2. 这个新对象会被执行[[ 原型 ]]连接<br>
+    3. 这个新对象会绑定到函数的调用的 this<br>
+    4. 如果函数没有其他的返回对象，那么 new 表达式中的函数调用会自动返回这个新的对象
+</p>
+<p>
+    具体实现代码如下：
+</p>
+{% highlight javascript %}
+function _new(fun,args){
+    var obj = {};
+    obj.__proto__ = fun.prototype;
+    var argsArray = Array.prototype.slice.call(arguments);
+    var argsArray1 = argsArray.slice(1,argsArray.length)
+    var result = fun.apply(obj,argsArray1);
+    return typeof result === "object" ? result : obj;
+}
+{% endhighlight %}
+<p>
+    下面简单解析下显式绑定的 call() 和 apply() 是怎么实现 this 绑定的
+</p>
+<p>
+    解释下call 和 apply 做了件什么事
+</p>
+
+<p>
+    使用 call 和 apply 的场景有两个 1. 继承 2. 修改 this 指针<br>
+	
+	比如 fn.call(fn1,args..)  <br>
+	
+	就上面的例子而言，它的具体流程是这个样子的 <br>
+	   
+	   1. 将 fn1.m = fn; <br>
+       2. 运行  fn1.m(); <br>
+       3. 删除 fn1.m; <br>
+    这时this就指向了 fn1 ,很神奇，其实不然，你只要明白 js 中的this 不是指向创建者的，而是指向执行者的。<br>
+
+    附一个 jq 中的 each 方法</p> 
+{% highlight javascript %}
+    each = function(arr,fn){
+        for(var i = 0;i<arr.length;i++){
+            fn.call(arr[i],i,arr[i]);
+        }
+    }
+//简单的几行代码就实现了jq中的 each 方法，自己深入理解就好。
+{% endhighlight %}
+<h3>
+    this 判断
+</h3>
+<p>
+    现在我们可以根据以上四种来进行判断：
+</p>
+<p>
+    1.函数中是否存在 new 中调用（new）绑定？如果是的话 this 绑定的是新创建的对象。
+</p>
+{% highlight javascript %}
+var bar = new foo();
+{% endhighlight %}
+<p>
+    2.函数是否通过 call，apply（显式绑定）或者硬绑定（箭头函数和bind）调用？如果是的话，this绑定的是指定对象
+</p>
+{% highlight javascript %}
+var bar = foo.call(obj2);
+{% endhighlight %}
+<p>
+    3.函数是否在某个上下文对象中调用（隐式绑定）？如果是的话，this 绑定在那个对象上下文。
+</p>
+{% highlight javascript %}
+var bar = obj.foo();
+{% endhighlight %}
+<p>
+    4.如果都不是的话，使用默认绑定。如果函数内部在严格模式下，就绑定的 undefined。否则绑定到全局对象
+</p>
+{% highlight javascript %}
+var bar = foo();
+{% endhighlight %}
+<h3>
+    绑定的例外
+</h3>
+<h4>
+    1.被忽略的this
+</h4>
+<p>
+    如果把 null 或 undefined 作为 this 的绑定对象传入 call ,apply 或 bind，这些值在调用时会被忽略，实际应用的是默认绑定规则。
+</p>
+<p>
+    那么什么情况下你会传入 null 呢？<br>
+    一种情况是 apply(...)来“展开”一个数组，并作为参数传入一个参数。
+</p>
+{% highlight javascript %}
+function foo(a,b){
+    console.log("a:"+ a,"b:"+b)
+}
+foo.apply(null,[2,3]); // a:2,b:3 ,把数组“展开”成参数  ES6 中的扩展运算符也是同样的功能
+
+// 使用 bind( ... ) 进行柯里化（预先设置一些参数）
+var bar =  foo.bind( null,2 );
+bar(3); //a:2,b:3
+{% endhighlight %}
+<p>
+    但是当你在用 null 当作 this 传入时，使用的是默认绑定到 window 上，这时会产生很多难以理解的 bug ，这时推荐你使用空对象代替 null。看下面例子： 
+</p>
+<p>
+    Tip: Object.create( null ) 和 {} 很像，但是并不会创建 Object.prototype 这个委托，所以它比 {} “更空”。
+</p>
+{% highlight javascript %}
+function foo(a,b){
+    console.log("a:"+ a,"b:"+b)
+}
+var o = Object.create( null );
+foo.apply(o,[2,3]) //把数组参数展开
+{% endhighlight %}
+<h4>
+    2.间接引用
+</h4>
+<p>
+    另一种情况书怒会有意无意的创建一个函数的简介引用，这是也是默认绑定
+</p>
+{% highlight javascript %}
+function foo(a,b){
+    console.log( this.a )
+}
+var a = 2,o = {a:3,foo:foo},p = {a:4};
+o.foo();//3 
+(p.foo = o.foo)(); //2
+
+// 这里注意，如果你是先赋值，然后执行的话，最终结果会是你的预期
+p.foo = o.foo
+p.foo()
+// 所以这里一定要注意调用位置
+{% endhighlight %}
+<p>
+    赋值表达式 p.foo = o.foo 的返回值时目标函数的引用，因此调用位置时 foo() 而不是 p.foo() 或 o.foo()
+</p>
+<h4>
+    3.软绑定
+</h4>
+<p>
+    之前分析过，英镑顶这种方式可以把 this 强制绑定到指定的对象(除了使用new)防止函数调用默认绑定规则。问题在于，硬绑定会大大降低
+    函数的灵活性，使用硬绑定以后就无法使用隐式绑定或显式绑定来修改 this
+</p>
+<p>
+    如果可以给默认绑定指定一个全局对象和 undefined 以外的值，那就可以实现和硬绑定相同的效果。
+</p>
+{% highlight javascript %}
+if( !Function.prototype.softBind ){
+    Function.prototype.softBind = function( obj ){
+        var fn = this;
+        // 捕获 curried 参数
+        var curried = [].slice.call( arguments,1 );
+        var bound = function(){
+            return fn.apply( ( !this || ( this === ( undefined || Window ) ) ) ? obj : this,curried.concat.apply( curried,arguments ) )
+        }
+        bound.prototype = Object.create( fn.prototype );
+        return bound;
+    }
+}
+// 除了软绑定之外，softBind( ... ) 的去他原理和 ES5 内置的 bind( ... ) 类似
+function foo(){
+    console.log("name:" + this.name)
+}
+var obj = {name:"obj"},obj1 = {name:"obj1"},obj2 = {name:"obj2"};
+var fooObj = foo.softBind( obj );
+fooObj(); // name:obj
+obj2.foo = foo.softBind( obj )
+obj2.foo(); //name:obj2
+fooObj.call( obj1 ); //name:obj1
+setTimeout( obj2.foo,10 ); // name:obj
+{% endhighlight %}
+
+<h3>
+    最后的，但是是最值得注意的点
+</h3>
+<p>
+    ES6 中的箭头函数是不使用 this 的四种标准规则，而是根据外层（函数或全局）作用域来决定 this
+</p>
+
