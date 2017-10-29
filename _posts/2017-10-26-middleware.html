@@ -1,0 +1,245 @@
+---
+layout: post
+title: Redux 中间件
+category: reactRedux
+subtitle: redux 技術棧
+tags:
+    - reactRedux
+    - 前端开发
+---
+
+<h2>{{ page.title }}</h2>
+<p>{{ page.date | date_to_string }}</p>
+<h3>
+    中间件的由来
+</h3>
+<p>
+    Redux 中一个简单的同步数据流动场景，点击 button 后，在回调中分发一个 action ，reducer 收到 action 后，更新 state 并通知 view 重新渲染。单向数据流，看似没问题。
+    但是，如果需要打印每一个 action 信息来调试，旧的去改 dispatch 活着 reducer 实现，使其具有打印日志的功能。又比如，点击 button 以后，需要先去服务端请求数据，只有等数据
+    返回后，才能从新渲染 view，此时我们希望 dispatch 或 reducer 拥有异步请求的功能。在比如，需要异步请求数据返回后，打印一条日志，在请求数据，在打印日志，再渲染。
+</p>
+<p>
+    面对多样的业务场景，单纯的修改 dispatch 或 reducer 的代码显然不具有普适性，我们需要的是可以组合的，自由插拔的插件机制，这一点 Redux 借鉴了 Koa (NodeJs 框架)里的 middleware 的思想。另外， Redux 中
+     reducer 更关心的是数据转化逻辑，所以 middlewre 就是为了增强 dispatch 而出现的。
+</p>
+<h3>
+    理解 middleware 机制
+</h3>
+<p>
+    Redux 提供了 applyMiddleware 方法来加载 middleware，该方法的源码如下：
+</p>
+{% highlight javascript %}
+import compose from './compose'
+
+export default function applyMiddleware( ...middleware ){
+    return ( next ) => ( reducer,initalState ) =>{  // next 就是 createStore 函数
+        let store = next( reducer,initalState );
+        let dispatch = store.dispatch;
+        let chain = [];
+
+        const middlewareAPI = {
+            getState:store.getState,
+            dispatch:( action ) => dispatch( action )  
+        };
+        dispatch = middleware.map( middleware => middleware(middlewareAPI) );
+        dispatch = compose( ...chain )( store.dispatch );
+
+        return {
+            ...store,
+            dispatch  // 这将覆盖原来的 dispatch
+        }
+    }
+}
+{% endhighlight %}
+<p>
+     applyMiddleware 的代码虽然只有二十多行，却非常的精炼
+</p>
+<p>
+    下面来看一个日志中间件的实现：
+</p>
+{% highlight javascript %}
+export default store => next => action => {
+    console.log('dispatch',action);
+    next(action);
+    console.log('finish',action);
+}
+{% endhighlight %}
+<p>
+    接下来，我们就分4步来深入解析 middleware 的运行原理。
+</p>
+<h4>
+    1.函数式编程设计
+</h4>
+<p>
+    middleware 的设计有点特殊，式一个层层包裹的匿名函数，这其实式函数式编程中的柯里化，他是一种用匿名单参数来实现多参数函数的方法。applyMiddleware 对对
+     logger 这个 middleware 及逆行层层调用，动态的将 store 和 next 参数赋值。
+</p>
+<h4>
+    2.给 middleware 分发 store
+</h4>
+<p>
+    通过如下方式创建一个普通的store：
+</p>
+{% highlight javascript %}
+let nreStore = applyMiddleware(mid1,mid2,mid3)(createStore)(reducer,null);
+{% endhighlight %}
+<p>
+    上述diamagnetic执行完后，applyMiddleware 方法陆续获得了3个参数，第一个式 middleware 数组[mid1,mid2,mid3,...],第二个是 Redux 原生的 createStore，
+    最后一个是 reducer。然后，我们可以看到 applyMiddleware 利用 createStore 和 reducer 创建一个 store。而 store 的 getState 方法和
+     dispatch 方法有分别被直接和间接地赋值给 middlewareAPI 变量 store：
+</p>
+{% highlight javascript %}
+const middlewareAPI = {
+    getState:store.getState,
+    dispatch:( action ) => dispatch(action)
+}
+
+chain = middleware.map( middleware => middleware(middleware) );
+{% endhighlight %}
+<p>
+    然后，让每个 middleware 带着 middleware 这个参数分别执行一遍。执行完后，获得 chain 数组[f1,f2,f3...],它保存的对象是第二个箭头函数返回的匿名函数。
+    因为闭包，每个匿名函数都可以访问相同的 store ， 即 middlewareAPI。
+</p>
+<p>
+    提示：middlewareAPI 中的 dispatch 为什么要用匿名函数包裹呢？<br />
+    我们用 applyMiddleware 是为了改造dispatch，所以 applyMiddleware 执行完毕后，dispatch 是变化了的，而 middlewareAPI 是 appleMiddleware 执行中分发到各个 middleware 的思想。另外，所以
+    必须用匿名函数包裹 dispatch，这样只要 dispatch 更新了，middlewareAPI 中的 dispatch 应用也会发生改变。这里主要是区别 store.dispatch
+</p>
+<h4>
+    3.组合串联 middleware
+</h4>
+<p>
+这一层只有一行代码，却是 appliMiddleware 精华所在：
+</p>
+{% highlight javascript %}
+    dispatch = compose(...chain)(store.dispatch)
+{% endhighlight %}
+<p>
+    其中 compose 是函数式编程中的组合，它将 chain 中的所有匿名函数 [f1,f2,...,fn] 组装程一个新函数，即新的 dispatch。当新的 dispatch 执行时，[f1,f2,...,fn]
+    ,从右到左一次执行（最新代码中是从左到右执行）。Redux 中 compose 的实现是下面这样的，但实现方式不是唯一的：
+</p>
+{% highlight javascript %}
+ // 以前版本的代码
+ function compose(...funs){
+     return arg => funs.reducerRight( ( composed,f ) => f( composed ),arg )
+ }
+
+ // 现版本的代码
+ function compose() {
+  for (var _len = arguments.length, funcs = Array(_len), _key = 0; _key < _len; _key++) {
+    funcs[_key] = arguments[_key];
+  }
+
+  if (funcs.length === 0) {
+    return function (arg) {
+      return arg;
+    };
+  }
+
+  if (funcs.length === 1) {
+    return funcs[0];
+  }
+
+  return funcs.reduce(function (a, b) {
+    return function () {  // 每个中间件的 next 函数就是他右边的中间件
+      return a(b.apply(undefined, arguments));
+    };
+  });
+}
+
+// 最后的 reduce 的组合就是这个函数的关键所在，也可以看出他是从左至右执行的
+// 这里简单演示一下组合过程
+
+// 假设有如下的函数数组
+const arr = [ function aa(){...},function bb(){...},function cc(){...}  ];
+// 然后开始组合
+
+arr.reducer( function( a,b ){
+    return function(){
+        return a( b.apply( undefined,arguments ) )
+    }
+} )
+
+// 第一次组合
+function first(){
+  return  aa( bb.apply( undefined,arguments ) )
+}
+
+//第二次组合
+
+function two(){
+    first( cc ) // first 会返回最终组合的函数 
+}
+
+// 那么根据上述的代码，这里 two 函数的最终形态如下：
+
+function two(){
+    return aa( bb.apply( undefined,cc.apply( undefined,arguments ) ) )
+}
+
+// 最终的 dispatch就是下面这个样子
+
+dispatch = aa( bb.apply( undefined,cc.apply( undefined,store.dispatch ) ) )
+
+// 而中间件是这个样子的
+
+const aa = store => next => action =>{
+    console.log( 'dispatch':action );
+    next(action); // 这个 next 就是 bb
+}
+// 最内层的函数的 next 就是最终传入的 store.dispatch
+{% endhighlight %}
+<p>
+    以上就是 Redux 处理中间件的大致过程，它实际做的事情就是增强了 dispatch ，使他能够做更多的事情
+</p>
+<p>
+    最后看一个中间件的示例：
+</p>
+{% highlight javascript %}
+// 处理异步的中间件 Redux Thunk：
+const thunk = store => next => action =>{
+    typeof action === 'function' ?
+        action( store.dispatch,store.getState ) :
+        next(action)
+}
+
+// 再看看 action
+
+const getThenShow = ( dispatch,getState ) =>{
+    const url = 'http://xxx.json';
+
+    fetch(url)
+        .then( res ) =>{
+            dispatch({
+                type:"AAAA",
+                message: res.json()
+            })
+            .catch( () => {
+                dispatch({
+                    type:"BBB",
+                    message:"error"
+                })
+            } )
+        }
+}
+{% endhighlight %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<p style = "text-align:center;">
+    <a href="/category/reduxReact.html">
+        返回此文章的分类
+    </a>
+</p>

@@ -1,0 +1,290 @@
+---
+layout: pages
+title: redux 基础
+category: reactRedux
+subtitle: redux 技術棧
+tags:
+    - reactRedux
+    - 前端开发
+---
+<h2>{{ page.title }}</h2>
+<p> 这里你将学会简单实现redux </p>
+<p>{{ page.date | date_to_string }}</p>
+<h3>
+    什么是 Redux
+</h3>
+<p>
+    在真正学习 Redux 之前，我们需要了解什么是 Flux，Flux 本身不是库，也不是框架，而是一种应用的架构思想。而 Redux 它的核心代码
+    可以理解成一个库，但是也同时强调与 Flux 类似的架构思想。
+</p>
+<p>
+    从设计上看，Redux 参考了 Flux 的设计，但是对 Flux 许多冗余的部分做了简化。Redux 本身非常简单，它的设计思想与 React 有异曲同工之妙，均是希望用最少的 API 实现核心的功能。
+</p>
+<h3>
+    Redux 三大原则
+</h3>
+<p>
+    想要理解 Redux ，必须要知道 Redux 设计和使用的三大原则
+</p>
+<h4>
+    1.单一数据源
+</h4>
+<p>
+    在传统的 MVC 架构中，需要根据需求创建无数个 Model，而 Model 之间可以互相监听，出发事件甚至循环或嵌套出发事件，这些在 Redux 中都是不允许的。 
+</p>
+<p>
+    在 Redux 的思想里，一个应用永远只有唯一的数据源。你的第一反应可能是：如果有一个复杂的应用，强制要求唯一的数据源岂不是会产生一个特别庞大的 Javascript 对象。
+    实际上，使用单一数据源的好处在于整个应用状态都保存在一个对象中，这样我们随时可以提取出整个应用的状态进行持久化。此时，这样的设计也为服务端渲染提供了可能。
+</p>
+<h4>
+    2.状态是制度的
+</h4>
+<p>
+    这一点符合 Flux 的思想，在 Redux 中，应用的状态是不允许被修改的，这一点被限制的非常彻底，因为压根就没有 store。在 Redux 中，应用的状态是不允许被修改的，这一点被限制的非常彻底，因为压根就没有
+    我们并不会用代码来定义一个 store 。取而代之的是，我们定义一个 reducer，它的功能是根据当前出发的 action 对应用的状态(state)进行迭代，这里我们并没有直接修改应用的状态，而是返回可一份全新的状态。
+</p>
+<p>
+    Redux 提供的 createStore 方法还会根据 reducer 生成 store。 最后，我们可以利用 store.dispatch 方法来达到修改状态的目的。
+</p>
+<h4>
+    3.状态修改均由纯函数完成
+</h4>
+<p>
+    在 Redux 里，我们通过定义 reducer 来确定状态的修改，而每一个 reducer 都是纯函数，这意味着它没有副作用，即接受一定得输入，必定会得到一定得输出。
+</p>
+<p>
+    这样设计的好处不仅在于 reducer 里对状态的修改变得简单，纯粹，可测试，更有意思的是， Redux 利用每次新返回的状态生成炫酷的事件旅行的调试方式，让跟踪每一次因为出发 action 而改变状态的结果成为可能。
+</p>
+<p>
+    了解了 Redux 的基本设计和思想，在真正的使用它之前，我们通过一个自定义的 Redux 来初探 Redux 的奥秘所在。
+</p>
+<h3>
+    createStore 的实现
+</h3>
+<p>
+    createStore 是 Redux 的核心，它是根据 reducer 去生成 store 的关键，他也是 Redux API 的集散地。下面我们先来定义它
+</p>
+{% highlight Javascript %}
+
+var createStore = function (reducer,initalState){
+    // createStore 接受 reducer 和 初始化的 state 作为参数(可选)
+    var listeners = [];
+    var state = initalState ? initalState : {};
+    
+    // 返回当前的数据状态
+    var getState = function (){
+        return state;
+    }
+
+    // 发送action
+    var dispatch = function(action){
+        state = reducer(state,action);
+        listeners.forEach( function( item ){
+            item( getState );
+        } )
+    }
+
+    // 用于注册监听函数，这样子只要状态改变，就会自动执行监听函数，改变数据
+    var subceribe = function( listener ){
+        listeners.push( listener );
+        // 返回的函数用于接触对当前注册监听函数的监听
+        return function unScbscribe( ){
+            var id = listeners.indexOf( listener );
+            listeners.splice( id,1 );
+        }
+    }
+    
+    return {
+        getState:getState,
+        dispatch:dispatch,
+        subceribe:subceribe
+    }
+}
+
+{% endhighlight %}
+<p>
+    以上就是 createStore 的基本实现，下面将通过实际 demo 来演示基本用法
+</p>
+<p>
+    从上面简单的 store 实现可以看出，redux 主要有 getState,dispatch,subceribe 三个主要的 API, 其中 getState 是用来获取当前的 state，
+    而 dispatch 是用来出发 action，subscribe 是用来注册监听函数用的，可以在每次出发 action 时，就根据 state 的变化去更新数据，
+    听起来是不是跟 react 有相似之处。下面看实际的例子
+
+</p>
+<p>
+    首先，你需要一个 html 页面，以便来将数据的变化直接反映在视图上
+</p>
+{% highlight html %}
+    <div id="content"></div>
+    <div id="title"></div>
+{% endhighlight %}
+<p>
+    然后就是主要的结合 redux 监听数据变化的 js 代码
+</p>
+{% highlight javascript %}
+   // 先获取需要的元素
+    const content = document.getElementById("content");
+    const title = document.getElementById("title");
+
+    // 首先是渲染函数
+    const renderContent = (color,contentCon) =>{
+        //console.log(contentObj)
+        content.style.color = color;
+        content.innerHTML = contentCon;
+    }
+
+    const renderTitle = (color,titleCon) =>{
+        title.style.color = color;
+        title.innerHTML = titleCon;
+    }
+
+    // 为了减少实际的监听函数，我们再定义一个函数
+    const renderApp = ( app ) => {
+        let appObj = app();
+        console.log(appObj)
+        renderContent(appObj.contentColor,appObj.content);
+        renderTitle( appObj.titleColor,appObj.titleContent );
+    }
+
+    // 还需要一个 reducer 来处理数据
+    
+    function reducer ( state,action ){
+        switch( action.type ){
+            case "CONTENTCOOR":
+                return Object.assign( state,{contentColor:action.data.color} );
+            case "TITLECOOR" :
+                return Object.assign( state,{titleColor:action.data.color} );
+            default:
+                return state;
+        }
+    }
+
+    // 初始化state
+
+   
+    const obj = {
+            contentColor:"green",
+            content:"AAAAAAAA",
+            titleColor:"green",
+            titleContent:"BBBBBBBB"
+    }
+
+    // 创建 store
+
+    const store = createStore( reducer , obj );
+    store.subceribe( renderApp );
+    store.dispatch( {type:"CONTENTCOOR",data:{color:"red"}} )
+    store.dispatch( {type:"TITLECOOR",data:{color:"yellow"}} )
+
+{% endhighlight %}
+<p>
+    以上就是 redux 的简单演示，在 createStore 中，需要传入 reducer 和 初始化的 state 作为参数，然后我们在调用其他的方法来完成整个 redux 的工作
+    ，这里应该清楚地是， redux 是一个数据处理库，它不存在为 react 定做的概念，所以，他可以和其他种类的应用进行协同工作，jq 也可以。
+</p>
+<h3>
+    关于 redux 的细节
+</h3>
+<p>
+    redux 中规定 reducer 应该是纯函数，这样子我们在确定输入的时候，就会有确定输出，这里不做详细的解释，下篇文章会作管更加详细的解释，而 action 的格式是 redux 硬性规定的。这个将会在下篇文章中作统一的说明 
+</p>
+<p>
+    上面是简单的定义并应用了 redux，下面我们将讨论一些更加细化的用法，这样子可以使我们自定义的 redux 更加的灵活和多变
+</p>
+<h3>
+    combineReducer 合并多个 reducer
+</h3>
+<p>
+    仔细想一下，我们的一个应用不可能只有一个 reducer ，如果只有一个，他将变得非常可怕，试想一下，几十个 case 的 switch语句，但是 store 有只能有一个，这就要求我们想办法将多个 reducer 合并成一个函数，这样在创建 store 时
+    仍然保持着是单个 reducer 传给createStore，这样，我们的应用的灵活性更大，因为你可以根据需要去将数据分离，在使用时会更加清晰和灵活
+</p>
+{% highlight javascript %}
+
+   const combineReducer = function( reducerObj ){
+    const reducerKeys = Object.keys( reducerObj );
+    
+    return function combine( state,action ){
+        // 控制 state 更新
+        let hascChange = false;
+        const initalState = state ? state: {};
+        //console.log(reducerKeys)
+        reducerKeys.forEach( ( item ) =>{
+            let nowReducer = reducerObj[item];
+            let preState = initalState[item] ? initalState[item] : {};
+            let nowState = nowReducer( preState,action );
+           // hascChange = (preState === nowState) ? false : true;
+            initalState[item] = nowState;
+        } )
+        return initalState;
+    }
+}
+
+{% endhighlight %}
+
+<p>
+    下面来做个简单的测试，接着上面的例子，这次我们写两个 reducer
+</p>
+{% highlight javascript %}
+
+const contentReducer = ( state,action ) => {
+    switch( action.type ){
+        case "CONTENT":
+            return Object.assign( state,{content:action.data.content} );
+        case "COLOR":
+            return Object.assign( state,{color:action.data.color} );
+        default:
+            return state;
+    }
+}
+
+const titleReducer = ( state,action ) => {
+    switch( action.type ){
+        case "CONTENT":
+            return Object.assign( state,{content:action.data.content} );
+        case "COLOR":
+            return Object.assign( state,{color:action.data.color} );
+        default:
+            return state;
+    }
+}
+
+// 初始化state
+
+    const obj = {
+            content:{
+                content:"AAAA",
+                color:"green"
+            },
+            title:{
+                content:"BBBBB",
+                color:"green"
+            }
+    }
+
+// 合并在一起
+const reducers = combineReducer({content:contentReducer,title:titleReducer});
+
+
+    
+
+    // 创建 store
+
+    const store = createStore( reducers , obj );
+
+{% endhighlight %}
+<p>
+    上面的演示基本就是 redux 的基本应用，这里的代码还有很多细节问题没有处理，比如类型判断等等，这些我们会在后续的文章中补全，下届我们将先学习一些关于 redux 的前置知识，希望通过这篇文章，可以使你对 redux 有了初步的认识和了解。 
+</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
