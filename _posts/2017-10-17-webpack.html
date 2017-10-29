@@ -1,0 +1,458 @@
+---
+layout: post
+title: webpack基础
+category: webpack
+tags:
+    - 前端开发
+    - JavaScript
+---
+<h2>{{ page.title }}</h2>
+<p>这篇文章由于示例较多，所以会很长，请做好心里准备</p>
+<p>{{ page.date | date_to_string }}</p>
+
+<h3>安装Nodejs</h3>
+
+<p>webpack是一个前端流行的打包和编译工具，在学习以前，需要你确认你的电脑上已经安装好 nodejs</p>
+
+<h3>下面，我们将以一个简单的路由项目来展示webpack的用法</h3>
+
+<p>首先，你需要找个目录，新建一个加 simple 的文件夹，我们的示例项目将会在这里面展开.下面是目录结构，仅供参考</p>
+<p class="back">
+    ├── dist &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                    打包输出目录, 只需部署这个目录到生产环境<br />
+    ├── package.json  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;            项目配置信息 <br />
+    ├── node_modules  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;            npm安装的依赖包都在这里面 <br />
+    ├── src      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                 我们的源代码 <br />
+    │   ├── components   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;         可以复用的模块放在这里面 <br />
+    │   ├── index.html   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;         入口html <br />
+    │   ├── index.js   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;           入口js <br />
+    │   ├── libs       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          不在npm和git上的库扔这里 <br />
+    │   └── views        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;           页面放这里 <br />
+    └── webpack.config.js   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;        webpack 配置文件 <br />
+</p>
+
+<p>然后在你刚才建的simple文件夹中打开命令行，输入 npm init</p>
+<p>这时会生成一些项目的配置信息，这里可以一路回车下去，最终，会将这些信息会默认生成到 package.json 的文件中</p>
+<h3 class="title">给项目加上语法报错和代码规范检查</h3>
+<p>这里要安装 esLint 来对你的代码的正确性做出判断，这个检测对于新手来说不太友好，往往会产生意想不到的报错，虽然只是你书写的 js 语法部分，当然，现在的一些编辑器也有同样的功能</p>
+
+<p class="back">
+    npm install eslint eslint-config-enough eslint-loader --save-dev
+</p>
+<p>
+    npm 允许你一次安装多个包，这些包的名字用空格隔开即可，这些包会被安装进 node_modules 目录下
+</p>
+<p>
+    这里说一下 --save-dev 和 --save 的异同：&nbsp;&nbsp;&nbsp; --save-dev会把安装的包和版本号记录到package.json中的devDependencies对象中, 还有一个--save, 会记录到dependencies对象中, 它们的区别, 我们可以先简单的理解为打包工具和测试工具用到的包使用--save-dev存到devDependencies, 比如eslint, webpack. 浏览器中执行的js用到的包存到dependencies, 比如jQuery等. 那么它们用来干嘛的? 
+</p>
+<p>
+    因为有些npm包安装是需要编译的, 那么导致windows/mac/linux上编译出的可执行文件是不同的, 也就是无法通用, 因此我们在提交代码到git上去的时候, 一般都会在.gitignore里指定忽略node_modules目录和里面的文件, 这样其他人从git上拉下来的项目是没有node_modules目录的, 这时我们需要运行
+</p>
+<p class="back">
+    npm install
+</p>
+<p>
+    它会读取package.json中的devDependencies和dependencies字段, 把记录的包的相应版本下载下来.
+</p>
+<p>
+    这里eslint-config-enough是配置文件, 它规定了代码规范, 要使它生效, 我们要在package.json中添加内容:
+</p>
+{% highlight javascript %}
+{
+"eslintConfig": {
+    "extends": "enough",
+    "env": {
+    "browser": true,
+    "node": true
+    }
+}
+}
+{% endhighlight %}
+<p class="tip">* esLint 刚开始使用时会不适应，而且也不是必须的，这步可以考虑先跳过，熟悉后再进行配置</p>
+<p>
+    下面需要写几个必要的页面，以确保我们的应用能跑起来
+</p>
+<p>
+        我们写一个最简单的SPA应用来介绍SPA应用的内部工作原理. 首先, 建立src/index.html文件, 内容如下:
+</p>
+{% highlight javascript %}
+    <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+        </head>
+        <body>
+        </body>
+    </html>
+{% endhighlight %}
+<p>
+        它是一个空白页面, 注意这里我们不需要自己写&lt;script src="index.js"&gt;&lt;/script&gt;, 因为打包后的文件名和路径可能会变, 所以我们用webpack插件帮我们自动加上.
+</p>
+<p>
+        然后重点是src/index.js:
+</p>
+{% highlight javascript %}
+
+// 引入页面文件
+import foo from './views/foo'
+import bar from './views/bar'
+
+const routes = {
+  '/foo': foo,
+  '/bar': bar
+}
+
+// Router类, 用来控制页面根据当前URL切换
+class Router {
+  start() {
+    // 点击浏览器后退/前进按钮时会触发window.onpopstate事件, 我们在这时切换到相应页面
+    // https://developer.mozilla.org/en-US/docs/Web/Events/popstate
+    window.addEventListener('popstate', () => {
+      this.load(location.pathname)
+    })
+
+    // 打开页面时加载当前页面
+    this.load(location.pathname)
+  }
+
+  // 前往path, 会变更地址栏URL, 并加载相应页面
+  go(path) {
+    // 变更地址栏URL
+    history.pushState({}, '', path)
+    // 加载页面
+    this.load(path)
+  }
+
+  // 加载path路径的页面
+  load(path) {
+    // 创建页面实例
+    const view = new routes[path]()
+    // 调用页面方法, 把页面加载到document.body中
+    view.mount(document.body)
+  }
+}
+
+// new一个路由对象, 赋值为window.router, 这样我们在其他js文件中可以引用到
+// 这里直接将其挂载在 window 属于偷懒行为，正确的做法应该是自己设定一个全局变量，将其挂载上去
+window.router = new Router()
+// 启动
+window.router.start()
+{% endhighlight %}
+<p>
+        现在我们还没有讲webpack配置所以页面还无法访问, 我们先从理论上讲解一下, 等会弄好webpack配置后再实际看页面效果. 当我们访问http://localhost:8100/foo的时候, 路由会加载 ./views/foo/index.js文件, 我们来看看这个文件:
+</p>
+
+{% highlight javascript %}
+
+// 引入html模板, 会被作为字符串引入
+import template from './index.html'
+
+// 引入css, 会生成 style 块插入到 head 头中
+import './style.css'
+
+// 导出类
+export default class {
+  mount(container) {
+    document.title = 'foo'
+    container.innerHTML = template
+    container.querySelector('.foo__gobar').addEventListener('click', () => {
+      // 调用router.go方法加载 /bar 页面
+      window.router.go('/bar')
+    })
+  }
+}
+// 注意,这里的 temlpte 的代码就是一个 html 的代码片段，其中有一个 class = .foo__gobar 的元素
+{% endhighlight %}
+<p>
+        借助webpack插件, 我们可以import html, css等其他格式的文件, 文本类的文件会被储存为变量打包进js文件, 其他二进制类的文件, 比如图片, 可以自己配置, 小图片作为Data URI打包进js文件, 大文件打包为单独文件, 我们稍后再讲这块.
+        
+        其他的 src 目录下的文件大家自己浏览, 拷贝一份到自己的工作目录, 等会打包时会用到.
+        
+        页面代码这样就差不多搞定了, 接下来我们进入webpack的安装和配置阶段.
+</p>
+<h3>
+        安装webpack和Babel
+</h3>
+<p>
+        我们把webpack和它的插件安装到项目:
+</p>
+<p class="back">
+        npm install webpack webpack-dev-server html-webpack-plugin html-loader css-loader style-loader file-loader url-loader --save-dev
+</p>
+<p>
+        html-webpack-plugin, html-loader,css-loader,style-loader等看名字就知道是打包html文件, css文件的插件, 大家在这里可能会有疑问, `html-webpack-plugin`和`html-loader`有什么区别, css-loader和style-loader有什么区别, 我们等会看配置文件的时候再讲.
+</p>
+<p>
+        file-loader和url-loader是打包二进制文件的插件, 具体也在配置文件章节讲解.
+</p>
+<p>
+        接下来, 为了能让不支持ES6的浏览器(比如IE)也能照常运行, 我们需要安装babel, 它会把我们写的ES6源代码转化成ES5, 这样我们源代码写ES6, 打包时生成 ES5.
+</p>
+<p class="back">
+        npm install babel-core babel-preset-env babel-loader --save-dev
+</p>
+<p>
+        这里babel-core顾名思义是babel的核心编译器.babel-preset-env是一个配置文件, 我们可以使用这个配置文件转换ES2015/ES2016/ES2017到ES5, 是的, 不只ES6哦. babel还有其他配置文件. 如果只想用ES6, 可以安装babel-preset-es2015:
+</p>
+<p class="back">
+        npm install babel-preset-es2015 --save-dev
+</p>
+<p>
+        但是光安装了babel-preset-env, 在打包时是不会生效的, 需要在package.json加入babel 配置:
+</p>  
+{% highlight javascript %}
+{
+    "babel": {
+      "presets": [
+        "env"
+      ]
+    }
+  }
+{% endhighlight %}
+<p>
+        打包时babel会读取package.json中babel字段的内容, 然后执行相应的转换.
+        
+        如果使用babel-preset-es2015, 这里相应的也要修改为:
+</p>
+
+{% highlight javascript %}
+{
+    "babel": {
+      "presets": [
+        "es2015"
+      ]
+    }
+  }
+{% endhighlight %}
+<p>
+        babel-loader是webpack的插件, 我们后面讲解.
+</p>
+<h3>
+        配置webpack
+</h3>
+<p>
+        包都装好了, 接下来, 总算可以进入正题了, 是不是有点心累...呵呵. 我们来创建webpack配置文件webpack.config.js, 注意这个文件是在node.js中运行的, 因此不支持ES6的import语法. 我们来看文件内容:
+</p>
+
+{% highlight javascript %}
+const { resolve } = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+
+module.exports = {
+  // 配置页面入口js文件
+  entry: './src/index.js',
+
+  // 配置打包输出相关
+  output: {
+    // 打包输出目录
+    path: resolve(__dirname, 'dist'),
+
+    // 入口js的打包输出文件名
+    filename: 'index.js'
+  },
+
+  module: {
+    /*
+    配置各种类型文件的加载器, 称之为loader
+    webpack当遇到import ... 时, 会调用这里配置的loader对引用的文件进行编译
+    */
+    rules: [
+      {
+        /*
+        使用babel编译ES6/ES7/ES8为ES5代码
+        使用正则表达式匹配后缀名为.js的文件
+        */
+        test: /\.js$/,
+
+        // 排除node_modules目录下的文件, npm安装的包不需要编译
+        exclude: /node_modules/,
+
+        /*
+        use指定该文件的loader, 值可以是字符串或者数组.
+        这里先使用eslint-loader处理, 返回的结果交给babel-loader处理. loader的处理顺序是从最后一个到第一个.
+        eslint-loader用来检查代码, 如果有错误, 编译的时候会报错.
+        babel-loader用来编译js文件.
+        */
+        use: ['babel-loader', 'eslint-loader']
+      },
+
+      {
+        // 匹配.html文件
+        test: /\.html$/,
+        /*
+        使用html-loader, 将html内容存为js字符串, 比如当遇到
+        import htmlString from './template.html'
+        template.html的文件内容会被转成一个js字符串, 合并到js文件里.
+        */
+        use: 'html-loader'
+      },
+
+      {
+        // 匹配.css文件
+        test: /\.css$/,
+
+        /*
+        先使用css-loader处理, 返回的结果交给style-loader处理.
+        css-loader将css内容存为js字符串, 并且会把background, @font-face等引用的图片,
+        字体文件交给指定的loader打包, 类似上面的html-loader, 用什么loader同样在loaders对象中定义, 等会下面就会看到.
+        */
+        use: ['style-loader', 'css-loader']
+      },
+
+      {
+        /*
+        匹配各种格式的图片和字体文件
+        上面html-loader会把html中<img>标签的图片解析出来, 文件名匹配到这里的test的正则表达式,
+        css-loader引用的图片和字体同样会匹配到这里的test条件
+        */
+        test: /\.(png|jpg|jpeg|gif|eot|ttf|woff|woff2|svg|svgz)(\?.+)?$/,
+
+        /*
+        使用url-loader, 它接受一个limit参数, 单位为字节(byte)
+
+        当文件体积小于limit时, url-loader把文件转为Data URI的格式内联到引用的地方
+        当文件大于limit时, url-loader会调用file-loader, 把文件储存到输出目录, 并把引用的文件路径改写成输出后的路径
+
+        比如 views/foo/index.html中
+        <img src="smallpic.png">
+        会被编译成
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAA...">
+
+        而
+        <img src="largepic.png">
+        会被编译成
+        <img src="/f78661bef717cf2cc2c2e5158f196384.png">
+        */
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 10000
+            }
+          }
+        ]
+      }
+    ]
+  },
+
+  /*
+  配置webpack插件
+  plugin和loader的区别是, loader是在import时根据不同的文件名, 匹配不同的loader对这个文件做处理,
+  而plugin, 关注的不是文件的格式, 而是在编译的各个阶段, 会触发不同的事件, 让你可以干预每个编译阶段.
+  */
+  plugins: [
+    /*
+    html-webpack-plugin用来打包入口html文件
+    entry配置的入口是js文件, webpack以js文件为入口, 遇到import, 用配置的loader加载引入文件
+    但作为浏览器打开的入口html, 是引用入口js的文件, 它在整个编译过程的外面,
+    所以, 我们需要html-webpack-plugin来打包作为入口的html文件
+    */
+    new HtmlWebpackPlugin({
+      /*
+      template参数指定入口html文件路径, 插件会把这个文件交给webpack去编译,
+      webpack按照正常流程, 找到loaders中test条件匹配的loader来编译, 那么这里html-loader就是匹配的loader
+      html-loader编译后产生的字符串, 会由html-webpack-plugin储存为html文件到输出目录, 默认文件名为index.html
+      可以通过filename参数指定输出的文件名
+      html-webpack-plugin也可以不指定template参数, 它会使用默认的html模板.
+      */
+      template: './src/index.html'
+    })
+  ],
+
+  /*
+  配置开发时用的服务器, 让你可以用 http://127.0.0.1:8080/ 这样的url打开页面来调试
+  并且带有热更新的功能, 打代码时保存一下文件, 浏览器会自动刷新. 比nginx方便很多
+  如果是修改css, 甚至不需要刷新页面, 直接生效. 这让像弹框这种需要点击交互后才会出来的东西调试起来方便很多.
+  */
+  devServer: {
+    // 配置监听端口, 因为8080很常用, 为了避免和其他程序冲突, 我们配个其他的端口号
+    port: 8100,
+
+    /*
+    historyApiFallback用来配置页面的重定向
+
+    SPA的入口是一个统一的html文件, 比如
+    http://localhost:8010/foo
+    我们要返回给它
+    http://localhost:8010/index.html
+    这个文件
+
+    配置为true, 当访问的文件不存在时, 返回根目录下的index.html文件
+    */
+    historyApiFallback: true
+  }
+}
+{% endhighlight %}
+
+<h3>
+    走一个
+</h3>
+<p>
+        配置OK了, 接下来我们就运行一下吧. 我们先试一下开发环境用的webpack-dev-server:
+</p>
+<p class="back">
+        node_modules\.bin\webpack-dev-server -d --hot
+</p>
+<p>
+        npm会把包的可执行文件安装到./node_modules/.bin/目录下, 所以我们要在这个目录下执行命令.
+        
+        -d参数是开发环境(Development)的意思, 它会在我们的配置文件中插入调试相关的选项, 比如打开debug, 打开sourceMap, 代码中插入源文件路径注释.
+        
+        --hot开启热更新功能, 参数会帮我们往配置里添加HotModuleReplacementPlugin插件, 虽然可以在配置里自己写, 但有点麻烦, 用命令行参数方便很多.
+        
+        命令执行后, 控制台的最后一行应该是
+</p>
+<p class="back">
+        webpack: bundle is now VALID.
+</p>
+<p>
+        这就代表编译成功了, 我们可以在浏览器打开http://localhost:8100/foo 看看效果. 如果有报错, 那可能是什么地方没弄对? 请自己仔细检查一下~
+        
+        我们可以随意更改一下src目录下的源代码, 保存后, 浏览器里的页面应该很快会有相应变化.
+</p>
+<p>
+        要退出编译, 按ctrl+c.
+        
+        开发环境编译试过之后, 我们试试看编译生产环境的代码, 命令是:
+</p>
+<p class="back">
+        node_modules\.bin\webpack -p
+</p>
+<p>
+        -p参数会开启生产环境模式, 这个模式下webpack会将代码做压缩等优化.
+</p>
+<p>
+        大家可能会发现, 执行脚本的命令有点麻烦. 因此, 我们可以利用npm的特性, 把命令写在package.json 中:
+</p>
+{% highlight javascript %}
+{
+    "scripts": {
+      "dev": "webpack-dev-server -d --hot --env.dev",
+      "build": "webpack -p"
+    }
+  }
+{% endhighlight %}
+<p>
+        package.json中的scripts对象, 可以用来写一些脚本命令, 命令不需要前缀目录 ./node_modules/.bin/, npm会自动寻找该目录下的命令. 我们可以执行
+</p>
+<p class="back">
+        npm run dev
+</p>
+<p>
+        来启动开发环境.<br>
+        
+        执行
+</p>
+<p class="back">
+        npm run build
+</p>
+<p>
+        来打包生产环境的代码.
+</p>
+<p>
+    以上是 webpack 的基础配置，进阶配置在 webpack2 中，如果有兴趣可以继续返回查看 
+</p>
+<p style = "text-align:center;">
+  <a href="/category/webpack.html">
+      返回此文章的分类
+  </a>
+</p>
