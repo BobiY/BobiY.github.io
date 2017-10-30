@@ -3,6 +3,7 @@
 .back{
   background: #333;
   color: #fff;
+  padding: 10px 0 10px 10px;
 }
 .highlight pre code * {
   white-space: nowrap;    // this sets all children inside to nowrap
