@@ -1,9 +1,12 @@
 ---
-layout: pages
-title: ajax
-category: js
+layout: post
+title: ajx 基础
+subtitle: ajx 初探 
+category: webpack
+tags:
+    - 前端开发
+    - JavaScrip
 ---
-<link rel="stylesheet" href="{{ site.baseurl }}/assets/style.css">
 <h2>{{ page.title }}</h2>
 <p>一项久经沙场的技术</p>
 <p>{{ page.date | date_to_string }}</p>
@@ -215,9 +218,4 @@ foo('data');
 </h3>
 <p>
     这种当时使用 webpack 就能实现，只需要配置 devServer 下的 proxy 字段即可实现，简单说下他的实现原理：同源域名下架设一个代理服务器来转发，JavaScript负责把请求发送到代理服务器代理服务器再把结果返回，这样就遵守了浏览器的同源策略。这种方式麻烦之处在于需要服务器端额外做开发。
-</p>
-<p style = "text-align:center;">
-    <a href="/category/js.html">
-        返回此文章的分类
-    </a>
 </p>
