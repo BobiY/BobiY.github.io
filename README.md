@@ -1,6 +1,6 @@
 #Yss Blog
 
-###[View Live Hux Blog &rarr;](https://yaoshuaibo.com)
+###[View Live Yss &rarr;](https://yaoshuaibo.com)
 
 
 
