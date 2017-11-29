@@ -1,0 +1,307 @@
+---
+layout: post
+title: 关于 Babel
+subtitle: 好用的工具 
+category: webpack
+tags:
+    - 前端开发
+    - JavaScript
+    - webpack
+---
+<h2>{{ page.title }}</h2>
+<blockquote>
+    <p>这货是个工具</p>
+</blockquote>
+<p>{{ page.date | date_to_string }}</p>
+<h3>简单介绍下 Babel </h3>
+<p>
+    Babel ---> 用于编写下一代 JavaScript 的编译器。看了这个概念，相信你也就清楚的知道它是干什么的；就是针对 ES2015+ 的 js 语法，为了兼容，将其编译为大部分浏览器都支持的低版本 js 语法。
+</p>
+<p>
+    Babel 一般不会单独使用，因为他只是 js 的编译工具，只是处理语法，他不会处理模块依赖等问题，所以与其他工具配合效果会更好，比如现在流行的 Webpack,这个不是今天的重点，这里只是简单的介绍下
+    Babel 的使用，为以后的学习打些基础
+</p>
+<h3>
+    Babel 的配置书写位置
+</h3>
+<ul>
+    <li>
+        1. 单独的 .babelrc 文件里
+    </li>
+    <li>
+        2. webpack 的 babel-loder 的 use.query 字段下
+    </li>
+    <li>
+        3. package.json 的 babel 字段下 
+    </li>
+</ul>
+<p>
+    接下来，就按照上面列举的顺序一一进行代码演示。
+</p>
+<blockquote>
+    <p>以下的代码涉及到的配置在后面讲解，这里只做写法演示，下同</p>
+</blockquote>
+{% highlight javascript %}
+    // 需要你在项目的根目录下建立一个 .babelrc 的文件
+    {
+        "presets": [
+          "react",  
+          [
+            "env", 
+            {
+              "targets": {  // 指定 js 代码的运行环境
+                "browsers": ["last 2 versions", "ie >= 7"],
+                "modules":false // 指定何种形式的模块，设置为 false 表示不转码，支持的模块有 "amd" ， "umd" ， "systemjs" ， "commonjs"
+    
+              }
+            }
+          ]
+        ],
+        "plugins": [
+          ["transform-runtime", {
+            "helpers": true,  // 是否注入工具函数
+            "polyfill": true, // 是否进行 API 兼容性处理
+            "regenerator": true, // 工具函数是否会影响全局环境
+            "moduleName": "babel-runtime"
+          }],
+          ["transform-imports", { // 按需加载的插件
+            "uxcore": {
+                "transform": "uxcore/lib/${member}",
+                "preventFullImport": true
+            }
+        }]
+        ]
+    }
+{% endhighlight %}
+
+{% highlight javascript %}
+// 在 Webpack 中使用 （webpack 的配置只是部分摘录）
+module:{
+    rules:[
+        {
+            test:/.js$/,
+            use:{
+                loader:'babel-loader',
+                query:{
+                    "presets": [
+                      "react",  
+                      [
+                        "env", 
+                        {
+                          "targets": {  // 指定 js 代码的运行环境
+                            "browsers": ["last 2 versions", "ie >= 7"],
+                            "modules":false // 指定何种形式的模块，设置为 false 表示不转码，支持的模块有 "amd" ， "umd" ， "systemjs" ， "commonjs"
+                
+                          }
+                        }
+                      ]
+                    ],
+                    "plugins": [
+                      ["transform-runtime", {
+                        "helpers": true,  // 是否注入工具函数
+                        "polyfill": true, // 是否进行 API 兼容性处理
+                        "regenerator": true, // 工具函数是否会影响全局环境
+                        "moduleName": "babel-runtime"
+                      }],
+                      ["transform-imports", { // 按需加载的插件
+                        "uxcore": {
+                            "transform": "uxcore/lib/${member}",
+                            "preventFullImport": true
+                        }
+                    }]
+                    ]
+                }
+            },
+            //loader:'babel-loader',
+            exclude: /node_modules/  //使用 babel-runtime 时要将node_modules排除，如果不排除，会造成 babel-runtime 的循环引用，产生错误，
+                                     //因为使用 babel-runtime 时，babel 会将里面的代码引用注入编译的模块中
+        },
+        {
+            test:/.css$/,
+            loader: 'style-loader!css-loader'
+        }
+    ]
+}
+
+// 仔细观察下，就是将 .babelrc 里面的配置直接放到 query 字段下，就可以顺利编译，这里注意，如果是这个样子写配置，配置中有些值是可以写成函数的，这个在下面讲解
+{% endhighlight %}
+<p>
+    在 package.json 中的配置不常用，使用起来也很简单，就是将 .babelrc 文件中的配置，直接放到 babel 字段下就可以，这里就不做演示
+</p>
+<h3>
+    常使用的包
+</h3>
+<p>
+    Babel 是可以不依赖其他工具单独编译 js 文件的，这点需要注意，如果是 node 环境，直接编译就可以使用，但是因为 babel 不会去处理引入的模块，所以在浏览器环境下，还需要 webpack 去处理
+    引入的依赖文件。
+</p>
+<ul>
+    <li>
+        <h4>
+            1.babel-cli
+        </h4>
+        <p>
+            这个是 babel 提供的命令行工具，可以根据配置去编译文件，这个包可以安装在全局，但是不建议这么做，因为不同的项目可能需要的版本不同，建议项目下安装，执行
+        </p>
+        <p class="back">
+            cnpm install --save-dev babel-cli
+        </p>
+        <p>
+            然后，只需要在 package.json 的 scripts 字段下添加 build ：' babel a.js -d lib ' ; 其中 a.js 是要编译的文件，lib 是编译后文件的输出目录，注意，输出的文件和原文件是同名的。
+            -d 表示输出的意思就是 --out-dir 表示输出到文件夹；--out-file 表示输出到文件；这里只是简单介绍，有兴趣可访问 Babel 官网。  
+        </p>
+    </li>
+    <li>
+        <h4>
+            2.babel-core
+        </h4>
+        <p>
+            这个包提供了 babel 编译时用的各种 API ，你可以手动调用去编译你需要的文件或代码片段，大致用法如下：
+        </p>
+        {% highlight javascript %}
+            // 简单了解即可
+            import * as babel from 'babel-core';
+            babel.transformFile(filename, options, callback)；
+        {% endhighlight %}
+    </li>
+    <li>
+        <h4>
+            3.babel-presets-env
+        </h4>
+        <p>
+            这是将 ES2015+ 的代码转换成浏览器兼容代码的依赖包，作用类似于以前使用的 babel-presets-es2015 等，这个包可以根据指定的浏览器进行代码编译，基本用法如下： 
+        </p>
+        {% highlight javascript %}
+        // 在 .babelrc 的 presets 字段下
+        [
+            "env",
+            {
+                "targets": {
+                    "browsers": ["last 2 versions", "ie >= 7"], // 指定 ie7及其以上版本，其他浏览器兼容最近的两个版本
+                    "modules":"umd"  // 表示模块的处理使用 umd 模式，不明白的直接设置为 false 即可
+
+                }
+            }
+        ]
+        {% endhighlight %}
+    </li>
+    <li>
+        <h4>
+            4.babel-polyfill
+        </h4>
+        <p>
+            这个包主要用来兼容各个浏览器版本，因为像 Promise，Object.assign 这种新的 API 不是所有浏览器都支持的，所以需要去做下兼容，具体用法可以在入口文件中引入，也可以在webpack 的
+            入口文件处，直接将其与入口文件打包在一起。但是引入后会污染全局环境。
+        </p>
+    </li>
+</ul>
+<h3>
+    插件简单介绍
+</h3>
+<ul>
+    <li>
+        <h4>
+            1.1.babel-plugin-import 
+        </h4>
+        <p>
+            用于按需引用
+        </p>
+        {% highlight javascript %}
+        //使用目地：
+        
+                //主要是处理引入库时按需加载的问题，配置及效果如下：
+        
+                [
+                    "import",
+                    {
+                        "libraryName": "antd", // 引入库时的别名
+                        "libraryDirectory": "lib",   // 默认按需文件存放的文件夹是: lib
+                        "style": true  // 是否按需引用样式文件，true 和 css代表的是，false 代表的是否 
+                    }
+                ]
+        
+             //效果：{ "libraryName": "antd", style: "css" }
+        
+                import { Button } from 'antd';
+                ReactDOM.render(<Button>xxxx</Button>);
+        
+                    ↓ ↓ ↓ ↓ ↓ ↓
+                    
+                var _button = require('antd/lib/button');
+                require('antd/lib/button/style/css');
+                ReactDOM.render(<_button>xxxx</_button>);
+        {% endhighlight %}
+    </li>
+    <li>
+        <h4>
+            2.babel-plugin-transform-runtime
+        </h4>
+        <p>
+            在 babel 进行打包处理时，会将处理语法的函数重复的写入打包文件中，这样子就会重复写入，实际是不需要的，这个插件主要是用于抽取打包函数，只将函数的引用写入文件，避免重复写入，在成代码冗余，
+            其次，还能进行 polyfill 处理，并且不会污染全局环境，但是这个是用于库和框架，因为这个 polyfill 处理只是部分处理，他对 "fooBall".include("foo"),实例方法是只做了部分兼容的，所以呢，你还是
+            需要老实的用 babel-polyfill 就好了，不过，这个插件一样有其作用，看配置： 
+        </p>
+        {% highlight javascript %}
+        //使用目地：
+        
+                    //进行 polyfill 处理且不会污染全局环境，主要用于框架和库，这样子会避免污染全局变量，兼容性会更好
+        
+                //配置：
+        
+                    [
+                        "transform-runtime", 
+                        {
+                            "helpers": false,  // 是否使用内置的工具函数，如果是 ture 的话，会在文件头部注入工具函数的引用，如果 false ，会生成将工具函数直接写入文件.
+                            "polyfill": true, // 是否进行 API 兼容性处理,也可自己 polyfill 处理，将此项设置为 false
+                            "regenerator": true, // 是否开启generator函数转换成使用regenerator runtime来避免污染全局域。星号函数和异步函数
+                            "moduleName": "babel-runtime" //模块别名
+                        }
+                    ]
+        {% endhighlight %}
+    </li>
+    <li>
+        <h4>
+            3.babel-plugin-transform-imports 按需引入 
+        </h4>
+        <p>
+            这个插件的功能与第一个插件的功能基本一致，都是处理按需引用的，但是这个需要自己去指定文件夹。这里不多解释，直接看配置：
+        </p>
+        {% highlight javascript %}
+        {
+            "plugins": [
+                ["transform-imports", {
+                    "react-bootstrap": {
+                        "transform": "react-bootstrap/lib/${member}",
+                        "preventFullImport": true, // 如果 import * as AA from "aa" ,这么些就会报错，默认设置为false，建议不要修改
+                        "style": "react-bootstrap/lib/${member-lowercase}/index.scss",  如果匹配到 scss 文件就会导入，如果没有匹配到，则不会导入
+                    },
+                    "lodash": {
+                        "transform": "lodash/${member}",
+                        "preventFullImport": true
+                    }
+                }]
+            ]
+        }
+
+        {
+            loader: 'babel-loader',
+                query: {
+                    plugins: [
+                        [require('babel-plugin-transform-imports'), {
+                            "my-library": {
+                                "transform": function(importName) {
+                                    return 'my-library/etc/' + importName.toUpperCase();
+                                },
+                                preventFullImport: true  // 当你把整个包导入的时候会报错  import * as AA from 'aa'
+                            }
+                        }]
+                    ]
+                }
+        }
+
+        //member 和 importName 都是导入的单个模块下的 API 名字，就是 Button，Tab这样子的名字
+        {% endhighlight %}
+    </li>
+</ul>
+
+
