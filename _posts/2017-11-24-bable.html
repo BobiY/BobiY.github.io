@@ -59,8 +59,8 @@ tags:
         ],
         "plugins": [
           ["transform-runtime", {
-            "helpers": true,  // 是否注入工具函数
-            "polyfill": true, // 是否进行 API 兼容性处理
+            "helpers": true,  // 是否注入工具函数  
+            "polyfill": true, // 是否进行 API 兼容性处理  polyfill + regenerator 两项同时开启，才能兼容 迭代器函数，仅仅使用 babel-polyfill 是不能兼容的
             "regenerator": true, // 工具函数是否会影响全局环境
             "moduleName": "babel-runtime"
           }],
@@ -166,7 +166,7 @@ module:{
     </li>
     <li>
         <h4>
-            3.babel-presets-env
+            3.babel-preset-env
         </h4>
         <p>
             这是将 ES2015+ 的代码转换成浏览器兼容代码的依赖包，作用类似于以前使用的 babel-presets-es2015 等，这个包可以根据指定的浏览器进行代码编译，基本用法如下： 
