@@ -249,7 +249,7 @@ module:{
         //配置：
 
         [
-            "transform-runtime", 
+            "transform-runtime",  // 默认下面的选项都是 true
             {
                 "helpers": false,  // 是否使用内置的工具函数，如果是 ture 的话，会在文件头部注入工具函数的引用，如果 false ，会生成将工具函数直接写入文件.
                 "polyfill": true, // 是否进行 API 兼容性处理,也可自己 polyfill 处理，将此项设置为 false
