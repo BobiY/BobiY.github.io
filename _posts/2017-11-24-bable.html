@@ -159,9 +159,9 @@ module:{
             这个包提供了 babel 编译时用的各种 API ，你可以手动调用去编译你需要的文件或代码片段，大致用法如下：
         </p>
         {% highlight javascript %}
-            // 简单了解即可
-            import * as babel from 'babel-core';
-            babel.transformFile(filename, options, callback)；
+        // 简单了解即可
+        import * as babel from 'babel-core';
+        babel.transformFile(filename, options, callback)；
         {% endhighlight %}
     </li>
     <li>
@@ -209,27 +209,27 @@ module:{
         {% highlight javascript %}
         //使用目地：
         
-                //主要是处理引入库时按需加载的问题，配置及效果如下：
-        
-                [
-                    "import",
-                    {
-                        "libraryName": "antd", // 引入库时的别名
-                        "libraryDirectory": "lib",   // 默认按需文件存放的文件夹是: lib
-                        "style": true  // 是否按需引用样式文件，true 和 css代表的是，false 代表的是否 
-                    }
-                ]
-        
-             //效果：{ "libraryName": "antd", style: "css" }
-        
-                import { Button } from 'antd';
-                ReactDOM.render(<Button>xxxx</Button>);
-        
-                    ↓ ↓ ↓ ↓ ↓ ↓
-                    
-                var _button = require('antd/lib/button');
-                require('antd/lib/button/style/css');
-                ReactDOM.render(<_button>xxxx</_button>);
+        //主要是处理引入库时按需加载的问题，配置及效果如下：
+
+        [
+            "import",
+            {
+                "libraryName": "antd", // 引入库时的别名
+                "libraryDirectory": "lib",   // 默认按需文件存放的文件夹是: lib
+                "style": true  // 是否按需引用样式文件，true 和 css代表的是，false 代表的是否 
+            }
+        ]
+
+        //效果：{ "libraryName": "antd", style: "css" }
+
+        import { Button } from 'antd';
+        ReactDOM.render(<Button>xxxx</Button>);
+
+            ↓ ↓ ↓ ↓ ↓ ↓
+            
+        var _button = require('antd/lib/button');
+        require('antd/lib/button/style/css');
+        ReactDOM.render(<_button>xxxx</_button>);
         {% endhighlight %}
     </li>
     <li>
@@ -244,19 +244,19 @@ module:{
         {% highlight javascript %}
         //使用目地：
         
-                    //进行 polyfill 处理且不会污染全局环境，主要用于框架和库，这样子会避免污染全局变量，兼容性会更好
-        
-                //配置：
-        
-                    [
-                        "transform-runtime", 
-                        {
-                            "helpers": false,  // 是否使用内置的工具函数，如果是 ture 的话，会在文件头部注入工具函数的引用，如果 false ，会生成将工具函数直接写入文件.
-                            "polyfill": true, // 是否进行 API 兼容性处理,也可自己 polyfill 处理，将此项设置为 false
-                            "regenerator": true, // 是否开启generator函数转换成使用regenerator runtime来避免污染全局域。星号函数和异步函数
-                            "moduleName": "babel-runtime" //模块别名
-                        }
-                    ]
+        //进行 polyfill 处理且不会污染全局环境，主要用于框架和库，这样子会避免污染全局变量，兼容性会更好
+
+        //配置：
+
+        [
+            "transform-runtime", 
+            {
+                "helpers": false,  // 是否使用内置的工具函数，如果是 ture 的话，会在文件头部注入工具函数的引用，如果 false ，会生成将工具函数直接写入文件.
+                "polyfill": true, // 是否进行 API 兼容性处理,也可自己 polyfill 处理，将此项设置为 false
+                "regenerator": true, // 是否开启generator函数转换成使用regenerator runtime来避免污染全局域。星号函数和异步函数
+                "moduleName": "babel-runtime" //模块别名
+            }
+        ]
         {% endhighlight %}
     </li>
     <li>
