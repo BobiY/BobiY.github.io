@@ -1,0 +1,64 @@
+---
+layout: post
+title: 再聊聊 webpack
+subtitle: 这货有点难 
+category: webpack
+tags:
+    - 前端开发
+    - JavaScript
+    - webpack
+---
+<h2>{{ page.title }}</h2>
+<blockquote>
+    <p>不知道怎么形容他</p>
+</blockquote>
+<h3>
+    聊聊我的看法
+</h3>
+<p>
+    从接触 webpack 到现在也有很长一段时间了，但是总感觉对他的了解不够，总想了解全面，知道的全面，但是，越是想了解清楚，越是感觉不得要领，在经历了一次次的痛苦以后，我明白了一个道理，工具是让你拿来用的，如果你不想致力于开发工具，那就用就好了，掌握自己要用的部分，没用到的，见到了就记录下来，你会发现，世界比你以前认识的更加美好。
+</p>
+<h3>
+    切入正题
+</h3>
+<h4>
+    1.从入口开始
+</h4>
+<p>
+    webpack 的入口是一个文件，这点不管你用没用过，你都应该猜的到，下面来看看他的具体写法，下面的写法被包括在入口文件的写法里，但是不是全部，希望了解更多，可以去官网进一步查看
+</p>
+{% highlight javascript %}
+//webppack 之入口文件 ----> 单入口文件 
+
+entry: __dirname + "/index.js"  // 这是最简单的但入口文件配置，别问我 __dirname 是什么，你去问 node 你就知道了。这种是 一对一
+
+// webpack 之入口文件 ----> 多文件的单入口文件
+entry:["polyfill","./index.js"] // 数组中的每个文件都会打包进一个文件里，也就是这里会输出一个文件，所以这种算输出单文件，也就是多对一。
+
+// webpack 之入口文件 ----> 多入口，多数出
+entry:{
+    a:"./a.js",
+    b:"./b.js"
+}  // 对象里配置的每个文件都会输出一个打包文件，这个有别于上面的，他是多个一对一
+
+// 最后,附上三种配置的写法
+
+// 一对一
+module.exports = {
+    entry:__dirname + "/index.js"
+}
+
+// 多对一
+module.exports = {
+    entry:["polyfill","./index.js"]
+}
+
+// 多个一对一
+module.exports = {
+    entry:{
+        a:"./a.js",
+        b:"./b.js"
+    }
+}
+
+{% endhighlight %}
