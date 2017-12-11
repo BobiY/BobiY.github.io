@@ -62,3 +62,165 @@ module.exports = {
 }
 
 {% endhighlight %}
+
+<h4>
+    2. 出口文件
+</h4>
+<p>
+    有入口就要有出口，这才是常理，出口文件的配置就没有那么多样化，但是配置项却有很多，因为 webpack 在尽力的满足各种用户需求，但是你需要知道的不多，这些就足够将你的应用打包
+</p>
+{% highlight javascript %}
+//webppack 之出口配置 
+
+module.exports = {
+    output:{
+        path:path.resolve( __dirname,"dist" ), // 这是输出文件的目录配置，以后的文件打包，图片等各种资源，打包后都默认输出在这个文件夹下。这里要写绝对路径
+        filename:"bundle.js", // 输出文件名称，为了对应多出口文件，你也可以写成 [name].js ---> name 就是多入口配置中的键，直接写 [name].js 就好，webpack 会自动识别，填充
+        publicPath:""  // 这个是静态资源的前缀配置，就是线上的cdn，或者在线上时，你的文件不是存放在 dist 而是 asserts 是，就可以设置成 "asserts"
+    }
+}
+
+// 出口文件的配置不止这些，有更多需求的话可自行官网学习
+
+{% endhighlight %}
+
+<h4>
+    3.externals
+</h4>
+<p>
+    这个选项是配置不需要打包的模块，一般是用于库文件，比如 react react-dom vue jquery 等，因为这些库你可以不用 webpack 打包，而是直接使用对应官网直接下载的文件，因为即使你使用 webpack 
+    进行这些库的抽离，打包后的文件依旧比官网直接下载的大得多，所以建议自己手动引入公共依赖库。
+</p>
+{% highlight javascript %}
+
+module.exports = {
+    externals:{
+        "react":"React",
+        "react-dom":"ReactDOM"
+    }
+}
+// 这里配置时一定要注意，对象里面的键是引入库时的名字，而值是你直接用 script 标签引入时库文件暴露的全局对象，比如 jquery 就是 $ 一样
+
+{% endhighlight %}
+
+<h4>
+    4.resolve
+</h4>
+<p>
+    这个配置项是个辅助选项，主要是配置模块如何解析，最常用的功能就是扩展名配置和路径别名配置。
+</p>
+{% highlight javascript %}
+
+module.exports = {
+    resolve:{
+        alias:{
+            "@":"../../aa"   // 引入时 原来是 import AA from "../../aa/AA" 配置后是  import AA from "@/AA" ，在打包时 webpack 会自动进行路径匹配
+        },
+        extensions:["",".jsx",".js"] // 配置扩展名，主要是 js 相关的文件扩展名，因为在书写路径时，你一般会省略 js 相关的文件扩展名
+    }
+}
+
+{% endhighlight %}
+
+<h4>
+    5.devServer
+</h4>
+<blockquote>
+    <p>别睡着了，这个是重头戏</p>
+</blockquote>
+<p>
+    配置开发服务器，这个功能在开发时是非常有用的
+</p>
+{% highlight javascript %}
+
+contentBase:  服务器的基本路径，一般为绝对路径，如果不配置，默认是项目的根目录
+
+    tip：一般与 output.path 是同一路径
+
+host：服务的主机名，一般为 localhost
+
+port：服务的端口号
+
+historyApiFallback：如果输入的地址不存在，直接跳转 404 页面,而 404 页面是需要单独配置的，一般配置为 true，当输入的路径不存在时，直接跳转 index.html 
+
+    配置如下:
+        historyApiFallback:{
+            rewrites:[
+                {from:/./,to:'/404.html'}  一般不会这样子配置，直接写 true 返回主页就好
+            ]
+        }
+
+overlay：这个选项是当编译出错时，直接在页面中显示错误，而不是仅仅在命令行中，true/false  这个功能相当实用，你就不用盯着命令行找错误
+
+stats：这个是控制 shell 中输出内容的 eg："errors-only" 只显示错误信息，不显示编译信息   color:ture 文字彩色显示
+
+quiet: false/true 控制台中不输出打包的信息
+
+compress：true/false(默认) 是否启动服务器压缩 当它被设置为true的时候对所有的服务器资源采用gzip压缩
+
+    优点：对JS，CSS资源的压缩率很高，可以极大得提高文件传输的速率，从而提升web性能
+
+    缺点：服务端要对文件进行压缩，而客户端要进行解压，增加了两边的负载
+
+inline 和 hot
+
+    webpack-dev-server 有自己的自动刷新和热模块更新的机制
+
+    1. iframe mode（默认模式，无需配置）
+
+        页面被嵌入在一个iframe里面，并且在模块变化的时候重载页面 这里的重载页面指的是重新加载页面
+
+    2. inline mode（需要配置）
+
+        首先将 devServer.hot 和 devServer.inline 都配置为 true 
+
+        然后，在入口文件中添加 'webpack-dev-server/client?http://localhost:你设置的端口号/' ，这段代码将会打包进入口文件里，相当于一个小型的客户端  webpack 3 中不需要这一步
+
+        最后，在插件中引入  new webpack.HotModuleRepiacementPlugin()
+
+        配置完成以后，当你保存修改以后，就不是重载，而是只对修改的部分进行增删改，也就是局部刷新
+
+porxy：启动反向代理
+
+    proxy:{  
+        "/text/":{ // 可以有多个
+            target:"http://localhost:8080",  // 目标站点
+            changeOrigin: true,    // 是否启动虚拟站点
+            pathRewrite: {  // 重写路径
+                '^/api/old-path' : '/api/new-path',     // rewrite path
+                '^/api/remove/path' : '/path'           // remove base path
+            }
+        }
+    }
+
+{% endhighlight %}
+
+<h4>
+    6.devtool
+</h4>
+<p>
+    辅助调试时使用，可以生成打包后文件和源文件的映射关系
+</p>
+{% highlight javascript %}
+
+
+在配置devtool时，webpack给我们提供了四种选项。
+
+            source-map:在一个单独文件中产生一个完整且功能完全的文件。这个文件具有最好的source map,但是它会减慢打包速度；
+
+            cheap-module-source-map:在一个单独的文件中产生一个不带列映射的map，不带列映射提高了打包速度，但是也使得浏览器开发者工具只能对应到具体的行，不能对应到具体的列（符号）,会对调试造成不便。
+            
+            eval-source-map:使用eval打包源文件模块，在同一个文件中生产干净的完整版的sourcemap，但是对打包后输出的JS文件的执行具有性能和安全的隐患。在开发阶段这是一个非常好的选项，在生产阶段则一定要不开启这个选项。
+            
+            cheap-module-eval-source-map:这是在打包文件时最快的生产source map的方法，生产的 Source map 会和打包后的JavaScript文件同行显示，没有影射列，和eval-source-map选项具有相似的缺点。
+            
+            四种打包模式，有上到下打包速度越来越快，不过同时也具有越来越多的负面作用，较快的打包速度的后果就是对执行和调试有一定的影响。
+
+            开发模式中建议使用 source-map 模式，生产时不建议使用 带 eval 的模式，因为可能不产生意料之外的错误，建议使用 cheap-module-source-map
+
+
+{% endhighlight %}
+
+<p>
+    plugins 和 loader 的内容比较多，将分开介绍，有兴趣的可以继续查看 webpack--pligins 和 webpack--module,另外，附上一份自己写的 webpack 的配置文件<a href = "https://github.com/BobiY/webpackStudy/blob/master/webpack.config.js">传送门</a>
+</p>
