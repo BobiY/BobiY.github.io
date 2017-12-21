@@ -1,0 +1,140 @@
+---
+layout: post
+title: 扒一扒跨域问题解决
+subtitle: 前端请求 
+category: JavaScript
+tags:
+    - 前端开发
+    - JavaScript
+---
+<h2>{{ page.title }}</h2>
+<blockquote>
+    <p>这属于网络请求</p>
+</blockquote>
+<p>{{ page.date | date_to_string }}</p>
+<h3>
+    何为同源
+</h3>
+<p>
+    同源策略是由网景公司提出，而且现代浏览器全都遵循这个策略。他的基本功能是，A 网站设置的 cookie ，B网站不能打开，除非两网站同源
+</p>
+<p>
+    这里的同源指的是
+</p>
+<ul>
+    <li> 协议相同  // http:// or https:// </li>
+    <li>域名相同  // www.baidu.com </li> 
+    <li>端口相同 </li>
+</ul>
+<p>
+    以上三者，有一个不同即为不同源
+</p>
+<h3>
+    解决办法
+</h3>
+<blockquote>
+    <p>这里讨论的解决办法仅限于 ajax 等类似请求方式</p>
+</blockquote>
+<h4>
+    同源限制了什么
+</h4>
+<p>
+    现代浏览器中，同源策略限制的有
+</p>
+<ul>
+    <li>Cookie、LocalStorage 获取</li>
+    <li>DOM 无法获得</li>
+    <li>AJAX 请求不能发送</li>
+</ul>
+<p>所以，一般的 img，script，link 等标签的请求是不会受到跨域限制的</p>
+<h4>
+    1. JSONP
+</h4>
+<p>
+    JSONP是服务器与客户端跨源通信的常用方法。最大特点就是简单适用，老式浏览器全部支持，服务器改造非常小。
+</p>
+<p>
+    这种方式是利用 script 不存在跨域限制，然后动态的在页面中添加 script 标签实现像服务器请求数据，请求到数据以后，会以一个带参函数的形式返回。
+</p>
+{% highlight javascript %}
+
+function addScriptTag(src) {
+    var script = document.createElement('script');
+    script.setAttribute("type","text/javascript");
+    script.src = src;
+    document.body.appendChild(script);
+  }
+  
+  window.onload = function () {
+    addScriptTag('http://example.com/ip?callback=foo');
+  }
+  
+  function foo(data) {
+    console.log('Your public IP address is: ' + data.ip);
+  };
+
+{% endhighlight %}
+<p>
+    上面代码是动态的插入 script 标签，然后注册好回调函数，先来看看最终的返回数据。
+</p>
+{% highlight javascript %}
+
+foo({
+    "ip": "8.8.8.8"
+  });
+
+{% endhighlight %}
+<p>
+    由于 script 标签请求的内容返回后会立即执行，所以当返回已经注册好的函数以后，就会立即执行这个函数，进而实现操作数据；更进一步的说，就是你先定义好一个函数
+    然后服务器返回的数据就是调用这个函数的代码。真实的原理就是页面上有两个 script 标签，你在上一个标签中定义了一个函数，那么你在下一个标签中就可以调用。
+</p>
+<p>
+    JSNOP 只能发送 GET 请求，所以限制性还是有的，下面介绍的方法将会更加通用。
+</p>
+<h4>
+    2. CORS
+</h4>
+<p>
+    这种方式需要浏览器和服务器同时支持，在浏览器方面，现在浏览器全都支持，IE必须是 10 及以上的版本，但是整个 CORS 过程是浏览器自动完成的，所以不需要用户去操作，这时候，就看服务端支持情况
+</p>
+<p>
+    这种方式的简单来说，需要服务器在响应头中添加一条信息即可
+</p>
+{% highlight javascript %}
+
+// 有后端添加
+res.header('Access-Control-Allow-Origin', '*');
+
+{% endhighlight %}
+<p>
+    * 表示就是所有域都可以访问，但是这样子是不安全的，一般是设置成几个固定的域，这样子就可以实现跨域。但是这种方法有时会触发 OPTION 请求，但是一般情况下都不会触发，
+    关于这个问题，后续会有更加详细的文章做解释，今天的讨论重点在于解决方式。
+</p>
+<h4>
+    3.反向代理
+</h4>
+<p>
+    这种方式的成本略高，如果使用 webpack 的话，直接在 devServer 里面配置即可，如果想知道怎么配置，点击<a href = "https://github.com/BobiY/webpackStudy/blob/master/webpack.config.js/#LC74">传送门</a>
+    proxy 字段设置的就是反向代理，具体设置请看<a href = "http://www.yaoshuaibo.com/webpack/2017/12/09/webpack/">再聊聊 webpack</a>.
+</p>
+<p>
+    webpack 只是一种方式，你也可以自己写一个简单的代理服务器进行请求转发。
+</p>
+<h4>
+    为什么是反向代理
+</h4>
+<p>
+    要知道什么是反向代理，你要清楚什么是代理，也就是正向代理。
+</p>
+<p>
+    在网络请求中，当要使用代理时，一般是当客户端发送请求的时候，有时需要过滤请求中的一些内容（就像你是用校园网时，他会不让你访问某些域名），这就是你的请求会先到一个中间服务器
+    ，中间服务器去根据某些过滤条件去先检测你的请求数据，当你的数据通过检测以后，这个服务器就会再将你的请求发送给另外一个服务器，这个服务器就在找到对应资源时，返回给代理服务器，
+    然后中间服务器在把数据返回给客户端。
+</p>
+<p>
+    举个简单的例子，网络翻墙就是正向代理，你不能访问一个国外的网站，诸如蓝灯这样的软件他提供的代理服务器可以访问国外的网站，当你使用蓝灯代理时，你的请求是先发送到蓝灯服务器，
+    然后蓝灯载把请求发送给你不能访问，他能访问的网站服务器，然后将网站返回的数据通过蓝灯返回给你，你就可以使用国外的网站。在这个过程中，你作为用户去访问国外的网站，但是你不是
+    直接去访问的，而是蓝灯给你做个中间转换，但是这时，你想访问的网站只知道蓝灯访问了他，而不知道是你进行了访问，所以，你作为真实的客户端被隐藏了，而蓝灯代替你去完成了求情工作。
+    总结起来就是，正向代理隐藏的是客户端，目标服务器是不知道真实的客户端的。
+</p>
+
