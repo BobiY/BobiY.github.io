@@ -1,0 +1,142 @@
+---
+layout: post
+title: webpack插件介绍
+subtitle: 使你的编译打包更符合你的要求 
+category: webpack
+tags:
+    - 前端开发
+    - JavaScript
+    - webpack
+---
+<h2>{{ page.title }}</h2>
+<blockquote>
+    <p>使你的打包更聪明</p>
+</blockquote>
+<p>
+    插件让你在打包时可以有更多的个性化配置方案，你可以使用不用的插件组合，来满足你的不同需求。下面是几种常用的插件：
+</p>
+<h3>
+   1.webpack 集成的插件 
+</h3>
+<p>
+    webpack 自身继承了部分插件，只要安装了 webpack，就可以直接使用。
+</p>
+<h4>
+    热更新插件
+</h4>
+<p>
+    这个插件的用法在 webpack 3.x 以后变得简单起来，看下面代码
+</p>
+{% highlight javascript %}
+// 首先引入 webpack
+var webpack = require("webpack");
+
+//然后在配置的 plugins 中添加
+webpack.HotModuleReplacementPlugin();
+
+// 这样子，当你修改代码时，浏览器就会自动刷新,如果webpack 的版本是 3.x 一下，需要在入口文件中额外打包一个客户端文件。
+
+// 全局注入插件
+webpack.ProviderPlugins({$:"jquery"})
+
+// 这是一个优化插件，只有当你在项目中使用 jquery 时，才会将 jquery 的代码打包，如果没使用，则不会打包
+
+// 提取公共库
+webpack.optimize.CommonsChunkPlugin({
+    //name对应入口文件中的名字，我们起的是jQuery
+    name:'jquery',
+    //把文件打包到哪里，是一个路径
+    filename:"assets/js/jquery.min.js",
+    //最小打包的文件模块数，这里直接写2就好
+    minChunks:2
+})
+
+// name 的配置也可以是个数组，当是数组的时候，会将每个依赖文件单独打包，然后引入，配置如下
+webpack.optimize.CommonsChunkPlugin({
+    //name对应入口文件中的名字，我们起的是jQuery
+    name:['jquery','react','react-dom'],
+    //把文件打包到哪里，是一个路径
+    filename:"assets/js/[name].min.js",
+    //最小打包的文件模块数，这里直接写2就好
+    minChunks:2
+})
+
+// 以上配置，就可以抽取多个公共文件，并单独打包,但是这样子会将开发环境的代码打包进文件里，这时，你需要在打包时将 node 的环境变量设置为生产模式，这时，需要另外一个插件
+webpack.DefinePlugin({  // 配置生产环境还是开发环境
+    'process.env': {
+        NODE_ENV: '"production"'
+    }
+})  
+
+// 但是还是建议直接引入官网打包好的库文件，这样子体积小，而且有保证，因为抽出来的库文件打包有插件的代码，会变得很大
+
+// glifyjs-webpack-plugin 压缩 js 代码的文件，无需安装，但是使用之前需要先引入
+
+var uglify = require('glifyjs-webpack-plugin');
+
+new uglify() // 直接这样子配置就可以使用
+
+{% endhighlight %}
+
+<h3>
+    2. 非 webpack 集成插件
+</h3>
+<p>
+    webpack 集成的插件只是很小一部分，下面介绍插件的需要单独安装
+</p>
+{% highlight javascript %}
+
+ // 1. extract-text-webpack-plugin  分离 css 样式代码
+ //使用 首先需要安装 然后引入，注意，这里只能用 require 下同
+ var CSSExtract = require("extract-text-webpack-plugin");
+ 
+ // 接下来，在 plugins 中加入以下代码，下同
+
+ new CSSExtract("[name].css") // name 是自定义的 css 文件名字
+
+ // 2. clear-webpack-piugin  每次打包清理目标文件夹
+
+ var ClearDir = require("clear-webpack-piugin");
+
+ new ClearDir(["dist"])  // 这里的 dist 取的是 output.path 所在目录
+
+ // 3.cpoy-webpack-plugin 将你每次需要的静态文件复制到指定目录，你需要配置源文件路径和目标路径
+ // 这个插件根据需求配置，不是一定需要的
+
+ var CopyWebpackPlugin = require("copy-webpack-plugin");
+
+ new CopyWebpackPlugin([{
+     from:path.resolve( __dirname,'react' ),  // 源文件路径
+     to:'./react'  // 目标文件路径，相对于 output.path 的路径
+ }])
+
+ // 这个插件的配置项是一个数组的形式，可以配置多个文件。
+
+ // 4.purifycss-webpack 去除 css 文件中，你定义了，但是没有使用的 css 代码
+ 
+ var Purifycss = require("purifycss-webpack");
+ nre Purifycss({
+     paths:glob.sync( path.resolve( __dirname,'index.html' ) )
+ })
+
+ // paths 是你的模板 html 文件的路径，而且这个插件一定要和 extract-text-webpack-plugin 插件一起使用，只有存在单独的 css 文件，才能将多余的 css 代码删除
+
+ // glob 是 node 的内置模块，不需要安装，直接引入即可 var glob = require("glob");
+
+
+ //5.html-webpack-plugin 读取模板 html 文件
+ var htmlPlugin = require('html-webpack-plugin');
+
+ new htmlPlugin({
+    // 模板文件
+    template:"./index.html",
+    minify:{ // 压缩 html 文件
+        removeAttributeQuotes:true  // 选项有很多，可自行选择
+    },
+    hash:true,  // 加入的 css 和 js 文件添加 hash 值
+    // 要往页面中注入的包
+    chunks:["react","react-dom","bundle"],
+    // 生成的页面名称
+    filename: 'index.html',
+})
+{% endhighlight %}
