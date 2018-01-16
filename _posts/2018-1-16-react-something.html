@@ -51,6 +51,10 @@ tags:
     这里要注意，组件的更新可能是 props 的改变引起的，也可能是 state 的改变引起的。当是 props 引起的组件更新，就会触发 componentWillReceiveProps，这时是可以直接调用 setState 对组件的 state 进行跟新的。而 shouldComponentWillUpdate 是控制组件是否进行更新的。
     如果返回的是 true 则组件进行更新，否则就不进行更新，但是，如果是 setState 引起的更新，当这里因为返回的 false 而阻止组件进行更新时，state 还是会进行更新的，只是没有执行 render 方法，所以只是数据改变了，而视图没有变化，这个小小的点一定要注意，不然会造成难以预料的数据变化
 </p>
+<p>
+    上面的五个生命周期函数中 2，3, 4 在每次 setState 被调用时都会执行，所以这三个函数里是不允许调用 setState 进行状态更新的，这样子会引起循环更新的死循环。componentDidUpdate 虽然也会在每次状态更新完成调用
+    但是他是在 render 之后，state 已经更新，如果在这里调用 setState ，会引起下一次的更新，所以这里是可以使用 setState 进行状态更新的。
+</p>
 <h3>
     3.组件是通过什么机制进行更新的
 </h3>
