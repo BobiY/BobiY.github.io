@@ -201,3 +201,4 @@ class ScrollingList extends React.Component {
   }
 {% endhighlight %}
 <p>getSnapshotBeforeUpdate 和 componentDidUpdate 是在同时期执行的，而且它的返回值会作为componentDidUpdate 的第三个参数，使用起来更加方便。</p>
+<p>另外，在 componentWillReceiveProps 中进行的网络请求也可以移到 componentDidUpdate 中进行，但是根据props 的判断要在 getSnapshotBeforeUpdate 进行。</p>
