@@ -1,0 +1,203 @@
+---
+layout: post
+title: static getDerivedStateFromProps
+category: reactRedux
+subtitle: react New Lifecycle
+tags:
+    - reactRedux
+    - 前端开发
+---
+<h2>{{ page.title }}</h2>
+<blockquote>
+    <P>react new Lifecycle</P>
+</blockquote>
+<p>{{ page.date | date_to_string }}</p>
+<h3>1. 关于 statci getDerivedStateFromProps 使用的一些思考。</h3>
+<p>"受控"和"不受控"组件一般是输入类组件才有的称呼。这里引申一下，将"受控"放大到只受父组件的 props 控制的组件 state 和 组件自己控制的，不受控制的 "不受控" 组件</p>
+<p>实际情况是，组件的 state 往往是这两种情况的混合状态，除非这个组件很简单。但是会存在一些，自身控制的 state 和依赖于 props 的 state 不冲突的情况。</p>
+<p>看以下代码</p>
+{% highlight javascript %}
+class EmailInput extends Component {
+    state = { email: "" };
+  
+    render() {
+        return <input onChange={this.handleChange} value={this.state.email} />;
+    }
+  
+    handleChange = event => {
+        this.setState({ email: event.target.value });
+    };
+  
+    statci getDerivedStateFromProps(newProps, newState) {
+        // This will erase any local state updates!
+        // Do not do this.
+        this.setState({ loading: nextProps.loading });
+    }
+}
+{% endhighlight %}
+<p>上面的组件很简单 loading 依赖于 props，这也是他的唯一来源，email的改变只通过自身控制，所以这个组件是个 "受控组件"。但是稍微复杂一点，这个组件的状态就变化了。</p>
+{% highlight javascript %}
+class EmailInput extends Component {
+    state = { email: this.props.email };
+  
+    render() {
+        return <input onChange={this.handleChange} value={this.state.email} />;
+    }
+  
+    handleChange = event => {
+        this.setState({ email: event.target.value });
+    };
+  
+    static getDerivedStateFromProps(newProps, newState) {
+        reutrn {
+            loading: newProps.loading,
+            email: newProps.defaultValue
+        }
+    }
+}
+{% endhighlight %}
+<p>上面的情况更为复杂，需要从 props 中获取 email 的默认值。但是，在每次 onChange 触发时，static getDerivedStateFromProps 也会被调用，新的 state 的值会一直被 props 中的默认值覆盖，这不是我们想要的。所以还要进一步优化。</p>
+<p>这里其实 componentWillReceiveProps 更加实用，根本不用关心 state 更新出发的 render。其实这里应该使用 componentWillReceiveProps，因为什么时候用
+    那个生命周期函数并不是固定的，这里只是举例。
+</p>
+<p>static getDerivedStateFromProps 的局限之处此时就暴露出来了，因为我们这是必须要确定是否要去根据 props 去更新 state。但是实际上却没有做。</p>
+{% highlight javascript %}
+class EmailInput extends Component {
+    state = { email: this.props.email };
+  
+    render() {
+        return <input onChange={this.handleChange} value={this.state.email} />;
+    }
+  
+    handleChange = event => {
+        this.setState({ email: event.target.value });
+    };
+  
+    static getDerivedStateFromProps(newProps, newState) {
+        if ( newProps.defaultValue !== newState.defaultEmail ) {
+            reutrn {
+                loading: newProps.loading,
+                defaultEmail: newProps.defaultValue
+                email: newProps.defaultValue
+            }
+        }
+        return {
+            loading: newProps.loading,
+        }
+    }
+}
+{% endhighlight %}
+<p>上面做了一些简单优化，state 中会保存来自 props 的 defaultValue，当触发 state 更新时，由于判断不通过，所以不会重置 defaultEmail 和 email。看上起成功的区分了是来自与 props 的更新还是来与 state。</p>
+<p>但是总有例外，如果两个用户的 email 是一样的，上面的判断就变得无效了。这时即使 props 发生了变化，组件的 state 是感知不到的，显示的仍然是输入值，而不是需要显示的默认值。</p>
+<p>看起来又陷入了困境，此时需要的是一个用户独一无二的标志位。</p>
+{% highlight javascript %}
+class EmailInput extends Component {
+    state = { email: this.props.email };
+  
+    render() {
+        return <input onChange={this.handleChange} value={this.state.email} />;
+    }
+  
+    handleChange = event => {
+        this.setState({ email: event.target.value });
+    };
+  
+    static getDerivedStateFromProps(newProps, newState) {
+        if ( newProps.userID !== newState.userID ) {
+            reutrn {
+                loading: newProps.loading,
+                userID: newProps.userID
+                email: newProps.defaultValue
+            }
+        }
+        return {
+            loading: newProps.loading,
+        }
+    }
+}
+{% endhighlight %}
+<p>换成 userID 作为区分后，不需要担心重复引起的 bug，因为知道它是可靠的而且唯一的。</p>
+<p>至此，static getDerivedStateFromProps 的小例子已经完成，需要注意的是，以上的例子 componentWillReceiveProps 也可以完成，在某些时候可能完成的更好。</p>
+<p>但是必须承认的是，不管使用 static getDerivedStateFromProps 还是 componentWillReceiveProps， 都会增加应用的复杂度，因为我们需要知道何时需要根据 props 去更新组件的状态。</p>
+<p>特别对于 static getDerivedStateFromProps 的使用更加小心，因为它是在每次 render 之前都会 调用。所以在使用时一定要搞清楚受 props 控制的 state 是否同时也受 state 控制。这对于代码的稳定性很重要。</p>
+<h3>2. 关于 getSnapshotBeforeUpdate</h3>
+<p>这个函数可能跟 componentWillUpdate 一样，看起来很鸡肋。使用场景也不是很多。而且他需要和 componentDidUpdate 配合使用。</p>
+<p>下面是通常在组件更新时获取 dom 属性的代码：</p>
+{% highlight javascript %}
+class ScrollingList extends React.Component {
+      listRef = null;
+       previousScrollOffset = null;
+  
+      componentWillUpdate(nextProps, nextState) {
+        // Are we adding new items to the list?
+        // Capture the scroll position so we can adjust scroll later.
+        if (this.props.list.length < nextProps.list.length) {
+            this.previousScrollOffset = this.listRef.scrollHeight - this.listRef.scrollTop;
+        }
+    }
+  
+    componentDidUpdate(prevProps, prevState) {
+        // If previousScrollOffset is set, we've just added new items.
+        // Adjust scroll so these new items don't push the old ones out of view.
+        if (this.previousScrollOffset !== null) {
+            this.listRef.scrollTop = this.listRef.scrollHeight - this.previousScrollOffset;
+            this.previousScrollOffset = null;
+        }
+    }
+  
+    render() {
+        return (
+            <div ref={this.setListRef}>
+                {/* ...contents... */}
+            </div>
+        );
+    }
+  
+    setListRef = ref => {
+        this.listRef = ref;
+    };
+}
+{% endhighlight %}
+<p>上面的代码是。当有新的列表数据加进来时，我们要保持用户页面上的数据显示的还是没更新时显示的那几条，而不是随着新加的数据滚动。</p>
+<p>我们知道 componentWillUpdate 和 render 都是在 “渲染” 期间执行的，而 componentDidUpdate 是在 “提交阶段”, 这之间可能存在着延迟。
+    就是如果，在“提交”期间，用户改变了窗口大小，那这时在 componentWillUpdate 获取的数据就会不准确，这时，就可以调用在 “提交”阶段执行的
+    getSnapshotBeforeUpdate 函数获取更准确的值。
+</p>
+{% highlight javascript %}
+class ScrollingList extends React.Component {
+    listRef = null;
+  
+    getSnapshotBeforeUpdate(prevProps, prevState) {
+        // Are we adding new items to the list?
+        // Capture the scroll position so we can adjust scroll later.
+        if (prevProps.list.length < this.props.list.length) {
+            return (
+                this.listRef.scrollHeight - this.listRef.scrollTop
+            );
+        }
+        return null;
+    }
+  
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        // If we have a snapshot value, we've just added new items.
+        // Adjust scroll so these new items don't push the old ones out of view.
+        // (snapshot here is the value returned from getSnapshotBeforeUpdate)
+        if (snapshot !== null) {
+            this.listRef.scrollTop = this.listRef.scrollHeight - snapshot;
+       }
+    }
+  
+    render() {
+        return (
+            <div ref={this.setListRef}>
+                {/* ...contents... */}
+            </div>
+        );
+    }
+  
+    setListRef = ref => {
+        this.listRef = ref;
+    };
+  }
+{% endhighlight %}
+<p>getSnapshotBeforeUpdate 和 componentDidUpdate 是在同时期执行的，而且它的返回值会作为componentDidUpdate 的第三个参数，使用起来更加方便。</p>
