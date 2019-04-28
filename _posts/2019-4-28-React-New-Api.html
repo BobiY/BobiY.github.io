@@ -1,0 +1,261 @@
+---
+layout: post
+title: React New Api
+category: reactRedux
+subtitle: react New Lifecycle
+tags:
+    - reactRedux
+    - 前端开发
+---
+<h2>{{ page.title }}</h2>
+<blockquote>
+    <P>react new Lifecycle</P>
+</blockquote>
+<p>{{ page.date | date_to_string }}</p>
+<h3>
+    1. 新的渲染周期
+</h3>
+<p>React 在 16.3 版本以后，添加了部分生命周期函数，同时将一些生命周期函数定义为不安全的生命周期函数。下面是新的渲染阶段会调用的生命周期函数：</p>
+
+<ul>
+    <li>construct()</li>
+    <li>static getDerivedStateFromProps()</li>
+    <li>render()</li>
+    <li>componentDidMount()</li>
+</ul>
+
+<p>同时将 componentWillMount 更名为 UNSAFE_componentWillMount(17.0版本之前两者都存在)。并且建议在新的代码中避免使用两者，以保证在使用后续更高版本React 时代码的稳定性。</p>
+
+<h3>2. 更新周期</h3>
+<p>组件更新时的生命周期函数也发生了改变：</p>
+<ul>
+    <li>static getDerivedStateFromProps()</li>
+    <li>shouldComponentUpdate()</li>
+    <li>render()</li>
+    <li>getSnapshotBeforeUpdate()</li>
+    <li>componentDidUpdate()</li>
+</ul>
+<p>可以看到，componentWillReceiveProps 和 componentWillUpdate 从其中消失，取而代之的是 static getDerivedStateFromProps 和 getSnapshotBeforeUpdate</p>
+<p>同样的 componentWillReceiveProps 和 componentWillUpdate 也被添加了 UNSAFE 前缀，标记他们是不安全的生命周期函数。在新的代码中建议少使用。</p>
+<h3>3. 新增的错误处理函数</h3>
+<ul>
+    <li>static getDerivedStateFromError()</li>
+    <li>componentDidCatch()</li>
+</ul>
+
+<h3>4. 新成员的详细介绍</h3>
+<h4>1. static getDerivedStateFromProps()</h4>
+<p>通过名字大致可以知道它是从新的 props 中获取 state，也就是说当新的 props 到来时才会触发。但事实是，在每一次 state 更新时，他还是会被触发。</p>
+<p>需要注意的是，他是静态方法，不属于任何实例，所以不存在 this 的调用。具体用法如下：</p>
+{% highlight javascript %}
+    class App extends React.Component{
+        constructor(props) {
+            super();
+        }
+
+        static getDerivedStateFromProps(newProps, newState) {
+            const { loading } = newProps;
+            if ( loading !== newState.loading ) {
+                return {
+                    loading
+                }
+            }
+            return null;
+        }
+    }
+{% endhighlight %}
+<p>如上面的例子，这个函数最终要返回一个需要更新的 state 对象，然后 React 会将其合并进新的 state 中，然后再执行 render 方法。如果不需要更新 state 直接返回 null</p>
+<p>不要在其中做有副作用的事情，比如 ajax 请求，这些事情可以放到 componentDidMount 中执行。因为即使以前 在 componentWillMount 中使用，render 方法也不会等到有返回时才执行，这贴合 componentDidMount 执行的时机。</p>
+<p> static getDerivedStateFromProps 会在每次 render 方法执行前执行，所以要谨慎的做出判断，在什么时候需要去根据 props 更新 state，以免产生问题。  </p>
+<p>在实际应用中的情况会更加复杂，如果在此生命周期中重置的state不是仅仅依赖于 props 要谨慎使用，尽量保证数据源单一，避免不要的错误产生。</p>
+<h4>2. 与 componentWillMount 使用时的区别</h4>
+<p>下面是使用 componentWillMount 的代码</p>
+{% highlight javascript %}
+    class App extends React.Component{
+        constructor(props) {
+            super();
+        }
+
+        componentWillMount() {
+            seriver(); // 一些服务端的初始化请求
+            this.setState({
+                loading: false
+            }); // 一些初始化的 state 设置
+            // somthing code
+        }
+       
+    }
+{% endhighlight %}
+<p>在使用 componentWillMount 时，总是会过度使用，会在其中初始化 state ，做一些有网络请求等。习惯这样做，并且在过去的日子中这样的代码表现的很好。</p>
+<p>但是在替换了新的生命周期函数以后，会将这里的逻辑分散在不同的生命周期中。看下面的代码：（只是一种简单的分离）</p>
+{% highlight javascript %}
+    class App extends React.Component{
+        constructor(props) {
+            super();
+            this.state = {
+                loading: this.props.loading
+            }; // 在这里做一些初始化的 state
+        }
+        static getDerivedStateFromProps(newProps, state) {
+            // 这里返回的 state 一定要清楚自己在干什么，因为 props 和 state 更新时都会调用，可能会导致 state 的覆盖。
+            return {
+                loading: newProps.loading
+            }
+        }
+        render() {
+            return null;
+        }
+        componentDidMount() {
+            seriver(); // 在这里做一些网络请求
+        }
+    }
+{% endhighlight %}
+<p>如上是简单的替换，其实只是将事情放在合适的生命周期中去做，但是不管你怎么做，千万不要在 getDerivedStateFromProps 调用有副作用的操作。</p>
+<h4>3. getSnapshotBeforeUpdate()</h4>
+<p>这个函数的调用的时机是在 render 以后，但是这时的 dom 还没有真正的插入，但是这时你可以获取一些 dom 信息。此声明周期的任何返回值都会作为 componentDidUpdate 的参数。</p>
+{% highlight javascript %}
+class ScrollingList extends React.Component {
+    constructor(props) {
+        super(props);
+        this.listRef = React.createRef();
+    }
+  
+    getSnapshotBeforeUpdate(prevProps, prevState) {
+        // 我们是否在 list 中添加新的 items ？
+        // 捕获滚动​​位置以便我们稍后调整滚动位置。
+        if (prevProps.list.length < this.props.list.length) {
+            const list = this.listRef.current;
+            return list.scrollHeight - list.scrollTop;
+        }
+        return null;
+    }
+  
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        // 如果我们 snapshot 有值，说明我们刚刚添加了新的 items，
+        // 调整滚动位置使得这些新 items 不会将旧的 items 推出视图。
+        //（这里的 snapshot 是 getSnapshotBeforeUpdate 的返回值）
+        if (snapshot !== null) {
+            const list = this.listRef.current;
+            list.scrollTop = list.scrollHeight - snapshot;
+        }
+    }
+  
+    render() {
+      return (
+        <div ref={this.listRef}>{/* ...contents... */}</div>
+      );
+    }
+  }
+{% endhighlight %}
+<p>它不能单独使用，因为对你的应用来说，它的存在主要是告诉 componentDidUpdate 是否需要做一些事情，这些事情包括修改 dom 信息，发送网络请求等。</p>
+<p>虽然他是实例方法，但是仍然不建议你在其中使用有副作用的操作，比如更新状态，这一切交给 componentDidUpdate 去做。</p>
+<p>但是他像 componentWillUpdate 一样，不经常使用，因为简单的判断你完全可以放在 componentDidUpdate 中去做。</p>
+<h4>4. 与 componentWilReceiveProps 的替代方案</h4>
+<p>componentWilReceiveProps 是在每次父组件更新的时候进行调用，通常在这里我们会做些props 映射到 state 的工作。</p>
+{% highlight javascript %}
+    class App extends React.Component{
+        constructor(props) {
+            super();
+        }
+
+        componentWilReceiveProps(newProps) {
+            seriver(); // 一些服务端的初始化请求
+            this.setState({
+                loading: newProps.loading
+            }); // 一些初始化的 state 设置
+            // somthing code
+        }
+       
+    }
+{% endhighlight %}
+<p>下面是简单的替代方案：</p>
+{% highlight javascript %}
+class App extends React.Component{
+    constructor(props) {
+        super();
+    }
+    static getDerivedStateFromProps(newProps) {
+        return {
+            loading: newProps.loading
+        }
+    }
+    getSnapshotBeforeUpdate(newProps) { // 这里的 newProps 还没有和 this.props 合并
+        if ( /* 一些判断 */ ) {
+            return true;
+        }
+    }
+    componentDidUpdate(props, state, snapshot) {
+        if ( snapshot ) {
+            seriver(); // 网络请求
+        }
+    }
+}
+{% endhighlight %}
+<p>上面的例子是一个简单的替代方案，实际应用中还应该根据实际情况进行调整。</p>
+<h4>5. 简单的总结</h4>
+<ul>
+    <li>上面只是简单的对新的生命周期的介绍，实际应用中还需要多多实践。</li>
+    <li>对于 static getDerivedStateFromProps(newProps), 在每次 render 之前都会执行，所以只有在你清楚的知道返回的 state 是否仅仅来自 props，如果还来自组件本身的 state 变化，注意每次 state 更新时 props 是否会覆盖 state 的更新。</li>
+    <li> getSnapshotBeforeUpdate(newProps) 的使用相对简单，不需要考虑那么多，最终的返回值会作为参数提供给 componentDidUpdate。但是要注意他的调用时机。</li>
+</ul>
+<h3>4. 错误边界处理生命周期</h3>
+<h4>1. static getDerivedStateFromError(error)</h4>
+<p>它和 static getDerivedStateFromProps() 的用法类似，会捕捉错误，最终也要有返回值一个 state，会和组件的 state 合并成新的 state。</p>
+{% highlight javascript %}
+class ErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false };
+    }
+  
+    static getDerivedStateFromError(error) {
+        // 更新 state 使下一次渲染可以显降级 UI
+        return { hasError: true };
+    }
+  
+    render() {
+        if (this.state.hasError) {
+            // 你可以渲染任何自定义的降级  UI
+            return <h1>Something went wrong.</h1>;
+        }
+  
+        return this.props.children; 
+    }
+}
+{% endhighlight %}
+<p>它会在后代组件抛出错误时被调用，参数只有一个错误信息，注意，它是在渲染期间被调用的，所以不要在这个函数里做有副作用的事情。</p>
+<h4>2. componentDidCatch(error, info)</h4>
+<p>它同样会捕捉组件及其子辈组件产生的错误，他不仅包含了错误，含有componentStack key --- 一系列的错误堆栈信息</p>
+{% highlight javascript %}
+class ErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false };
+    }
+  
+    static getDerivedStateFromError(error) {
+        // 更新 state 使下一次渲染可以显示降级 UI
+        return { hasError: true };
+    }
+  
+    componentDidCatch(error, info) {
+        // "组件堆栈" 例子:
+        //   in ComponentThatThrows (created by App)
+        //   in ErrorBoundary (created by App)
+        //   in div (created by App)
+        //   in App
+        logComponentStackToMyService(info.componentStack);
+    }
+  
+    render() {
+        if (this.state.hasError) {
+            // 你可以渲染任何自定义的降级 UI
+            return <h1>Something went wrong.</h1>;
+        }
+  
+        return this.props.children; 
+    }
+}
+{% endhighlight %}
+
+<p>需要注意的是，定义了以上任意一个错误处理函数的组件就叫做 "错误边界"。它或捕捉到子辈组件里的错误。但是不幸的是，"错误边界"是无法捕捉自己在生命周期和 render 期间的错误。</p>
