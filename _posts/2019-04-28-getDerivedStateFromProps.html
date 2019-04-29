@@ -58,7 +58,7 @@ class EmailInput extends Component {
 {% endhighlight %}
 <p>上面的情况更为复杂，需要从 props 中获取 email 的默认值。但是，在每次 onChange 触发时，static getDerivedStateFromProps 也会被调用，新的 state 的值会一直被 props 中的默认值覆盖，这不是我们想要的。所以还要进一步优化。</p>
 <p>这里其实 componentWillReceiveProps 更加实用，根本不用关心 state 更新出发的 render。其实这里应该使用 componentWillReceiveProps，因为什么时候用
-    那个生命周期函数并不是固定的，这里只是举例。
+    那个生命周期函数并不是固定的，这里只是抛砖引玉。
 </p>
 <p>static getDerivedStateFromProps 的局限之处此时就暴露出来了，因为我们这是必须要确定是否要去根据 props 去更新 state。但是实际上却没有做。</p>
 {% highlight javascript %}
