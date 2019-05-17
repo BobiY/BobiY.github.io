@@ -1,0 +1,164 @@
+---
+layout: post
+title: Router 
+category: reactRedux
+subtitle: Router 简析
+tags:
+    - reactRedux
+    - 前端开发
+---
+<h2>{{ page.title }}</h2>
+<blockquote>
+    <P>Router 简析</P>
+</blockquote>
+<p>{{ page.date | date_to_string }}</p>
+<h3>什么是前端路由</h3>
+<p>路由的概念来自于服务端，服务端中路由描述的是 URL 与处理函数的对应关系。</p>
+<p>在 WEB 前端的 SPA （单页面应用）中，路由描述的是 URL 与 UI 的映射关系，而且这个映射是单向的，只能从 URL 到 UI（无需刷新页面）。</p>
+<h3>学习路由前的前置知识</h3>
+<p>在学习路由之前，需要一些前置知识作为铺垫，可能你已经对这些知识很了解，那也可以温故而知新。</p>
+<h4>首先是 window.location 对象</h4>
+<table>
+    <tbody>
+        <tr>
+            <th>属性名称</th>
+            <th>属性描述</th>
+            <th>参数类型</th>
+            <th>默认值</th>
+        </tr>
+        <tr>
+            <td>hash</td>
+            <td>设置或返回从 # 开始的 URL。</td>
+            <td>无</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>host</td>
+            <td>设置或返回主机名和当前 URL 的端口号。</td>
+            <td>无</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>hostname</td>
+            <td>设置或返回当前 URL 的主机名。</td>
+            <td>无</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>href</td>
+            <td>设置或返回完整的URL。</td>
+            <td>无</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>pathname</td>
+            <td>设置或返回当前 URL 的路径部分。</td>
+            <td>无</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>port</td>
+            <td>设置或返回当前URL的端口号。</td>
+            <td>无</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>protocol</td>
+            <td>设置或返回当前 URL 的协议。</td>
+            <td>无</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>search</td>
+            <td>设置或返回从 ？ 开始的 URL （查询部分）。</td>
+            <td>无</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>assign()</td>
+            <td>ocation.assign(URL) 加载一个新的文档。</td>
+            <td>string</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>reload()</td>
+            <td>重新加载当前文档。（false === F5 | true=== shift + F5）</td>
+            <td>boolean</td>
+            <td>false</td>
+        </tr>
+        <tr>
+            <td>replace()</td>
+            <td>replace(newURL) 方法不会在 history 对象中生成一个新的记录。使用改方法时，新的 URL 将覆盖 history 对象中的当前记录.</td>
+            <td>string</td>
+            <td>无</td>
+        </tr>
+    </tbody>
+</table>
+<h4>然后是 window.history 对象</h4>
+<p>这个对象是 H5 添加内容，用于操作和保存当前 sheet 页的路径堆栈信息。</p>
+<table>
+    <tbody>
+        <tr>
+            <th>属性名</th>
+            <th>属性描述</th>
+            <th>参数类型</th>
+            <th>默认值</th>
+        </tr>
+        <tr>
+            <td>length(read only)</td>
+            <td>返回历史记录中的条目数。</td>
+            <td>无</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>scrollRestoration</td>
+            <td>记录当前页面的滚动条位置，当页面刷新时，会保持当前滚动条的位置。</td>
+            <td>string</td>
+            <td>"auto"||  默认值为 auto 也就是会保持。这是你手动设置是无效的。在刷新页面时。
+                    可选值为 manual ，当为这个值的时候，在页面刷新是的手动设置的值是有效的。（这是一个实验性的 API）</td>
+        </tr>
+        <tr>
+            <td>state</td>
+            <td>返回一个在历史堆栈顶部的状态值。这是一种可以不必等待popstate 事件而查看状态的方式。</td>
+            <td>无</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>back()</td>
+            <td> 前往上一页，用户可点击浏览器左上角的返回按钮模拟此方法。等价与history.go(-1)。(当浏览器回话历史记录处于第一页时调用此方法没有效果，而且也不会报错。)</td>
+            <td>无</td>
+            <td>无(即使传递参数也会被忽略)</td>
+        </tr>
+        <tr>
+            <td>forward()</td>
+            <td>在浏览器历史里前往下一页，用户可点击浏览器左上角的前进按钮模拟此方法。等价于 history.go(1)。(当浏览器历史栈处于最顶端时（当前页面处于最后一页时）调用此方法没有效果也不报错。)</td>
+            <td>无</td>
+            <td>无(即使传递参数也会被忽略)</td>
+        </tr>
+        <tr>
+            <td>go( NUM )</td>
+            <td>go（）方法载入到会话历史中的某一特定的页面，通过与当前页面相对位置来标志（当前页面的相对位置为 0）</td>
+            <td>number</td>
+            <td>无（注意，当 go(0) 是，他的行为和 window.reload(false) 的行为一致 ）</td>
+        </tr>
+        <tr>
+            <td>pushState( )</td>
+            <td>指定的名称和 URL（如果提供改参数）将数据 push 进回话历史栈，数据被 DOM 进行不透明的处理；你可以指定任何被序列化的 js 对象。</td>
+            <td>(state: object, title: string, URL: string)</td>
+            <td>无（tip： 火狐现在忽略了 title 参数。）</td>
+        </tr>
+        <tr>
+            <td>replaceState（）</td>
+            <td>replaceState（）是修改了当前的历史记录项，而不是新建一个。注意这并不会阻止其在全局浏览器记录中创建一个新的历史记录项。</td>
+            <td>与 pushState 相同</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>popstate 事件（ompopstate）</td>
+            <td>window.onpopstate 是 popstate 事件在 window对象上的事件处理程序。
+                    每当处于激活状态的历史记录条目发生变化时，popstate 事件就会在对应window 对象上触发。如果当前处于激活状态的历史条目记录是由 history.pushState()方法创建，或者由 history.replaceState()方法修改过得，则 popstate 事件对象的 state 属性包含了这个历史记录条目的 state 对象的一个拷贝。</td>
+            <td>event:{state}</td>
+            <td>注意：调用 history.pushState()或者 history.replaceState()不会触发 popstate 事件。popstate 事件只会在浏览器某些行为下触发，比如点击后退，前进按钮（或者在 js 中调用 back（），forward（），go( )方法）。</td>
+        </tr>
+    </tbody>
+</table>
