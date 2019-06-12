@@ -1,0 +1,62 @@
+---
+layout: post
+title: D3  的选择器与元素操作
+category: D3js
+subtitle: D3 的选择器与元素操作
+tags:
+    - D3js
+    - 前端开发
+---
+<h2>{{ page.title }}</h2>
+<blockquote>
+    <P>D3 的选择器与元素操作</P>
+</blockquote>
+<p>{{ page.date | date_to_string }}</p>
+
+<h3>
+    D3 选择器
+</h3>
+<p>
+    D3 的选择器和 JQuery 一样，简单，明了，好记。作为选择器的字符串也和 JQuery 一样。所以这一点对于学习的负担几乎没有，下面是 D3 的选择器 API。
+</p>
+{% highlight javascript %}
+
+const svg = d3.select("svg"); // 返回第一个匹配到的 svg 元素
+
+const svgList = d3.selectAll("svg"); // 返回所有匹配到的 svg 元素，是个元素集
+
+// 支持的选择器  tagName, class ==== ".class" , id ==== "#id"
+
+{% endhighlight %}
+<p>记住这两个选择器是一个好的开始，因为它是基础，下面的操作都是基于拿到的 html Element 完成的。</p>
+
+<h3>
+    D3 的元素操作
+</h3>
+<p>
+    D3 中的元素操作也很简单，提供了三种方式，如果你对 JQuery 熟悉，这些元素操作对于你来说也是信手拈来。
+</p>
+{% highlight javascript %}
+
+const svg = d3.select("svg"); // 返回第一个匹配到的 svg 元素
+
+// 向 svg 中添加一个元素
+const g = svg.append("g");
+
+// 在上一步添加的元素前面添加一个元素
+const g1 = g.insert(g, "g");
+
+// 移除上一步添加的 g1
+g1.remove();
+
+{% endhighlight %}
+<p>
+    这三个之中，常用的是 append，其他两个很简单，用法也与 JQuery 中同名函数用法一致。
+</p>
+
+<h3>
+    总结
+</h3>
+<p>
+    本小节的内容很少，也很容易记忆，但是这个是基础，所以还是细心记忆，并且练习。
+</p>
