@@ -1,0 +1,132 @@
+---
+layout: post
+title: D3 数据的绑定与元素操作 
+category: D3js
+subtitle: D3 数据的绑定与元素操作
+tags:
+    - D3js
+    - 前端开发
+---
+<h2>{{ page.title }}</h2>
+<blockquote>
+    <P>D3 数据的绑定与元素操作</P>
+</blockquote>
+<p>{{ page.date | date_to_string }}</p>
+<p>注意： 采用的 D3 版本是 V5 </p>
+<h3>
+    D3 中的数据绑定
+</h3>
+<p> 
+    D3 中的基础 API 都很简单，操作数据的只要有 data 和 datum 两种
+</p>
+<p>
+    data 用来操作的是有一个数字， datum 操作的是一个数据。所以相比而言，D3 中常使用的是 data
+</p>
+{% highlight javascript %}
+
+const svg = d3.select("svg");
+
+const data = [1,2,34,5,6];
+const datum = 1;
+
+svg.data(data);  // data 是这么用的
+
+// d 就是 datum 的数据 eg： d = datum = smneValue; 
+svg.datum(datum).append("text").text( d => d ); // datum 是这么用的
+
+{% endhighlight %}
+
+<p>
+    datum 可以像上面那样子操作，但是 data 却不能，因为 data 需要的是一个数组，不管数组里的你要放什么，但是记得一定是个数组。
+</p>
+
+<h3>
+    D3 中检测元素的机制
+</h3>
+<p>
+    这个检测机制是我自定义的名字，其实是在操作数据集（数组）的时候才有作用。看下面代码：
+</p>
+{% highlight javascript %}
+
+const svg = d3.select("svg");
+
+const data = [1,2,34,5,6];
+
+const gList = svg.data(data).selectAll("text"); 
+
+// 首先假设一种情况， svg 下面不存在任何的 text 元素
+const gEnter = gList.enter();
+
+// 此时 data.length === 5 如果想要操作这 5 个数据，这里就需要 5 个 text 元素
+// 这时 gEnter 就代表的是需要添加的元素个数，看下面的操作
+
+const textL = gEnter.append("text").text( (d , i) => d );
+
+// 上面的代码中，会添加 5 个 text 元素，而且将 data 的中的每个元素给添加到 text 元素中。
+
+// 此时的 enter 代表的就是
+
+//  data   textEle
+//   1     此时 svg 中不存在 text 元素，所以没有已经存在的元素跟他对照
+....
+// 所以 enter 代表的就是 data.length - 当前的元素集的长度；
+{% endhighlight %}
+<p>
+    enter 代表的是对比当前元素集和数据来讲缺少的元素。而 update 代表的是当前存在的元素，仅仅是需要更新属性。exit 代表的是当前元素集比数据集合多的元素。
+</p>
+<p>
+    上面的描述中，可以看出，元素集和数据集的个数对比决定了 enter ， update ， exit 的元素个数。
+</p>
+{% highlight javascript %}
+
+const svg = d3.select("svg");
+
+const data = [1,2,34,5,6];
+
+const gList = svg.data(data).selectAll("text"); 
+
+// 首先是单独的 enter  svg 中不存在一个 text；此时：
+
+const enterL = gList.enter();
+enterL.append("text").text( ( d,i ) => d );
+
+// 此时 enter 的个数和 data.length 的个数相同
+
+// 接下来是 enter 和 update 共同存在的部分；假设此时已经存在两个 text
+const updateL = gList.update();  // 对应的data 中的数据是 1,2
+const enterL = gList.enter(); // 对应的 data 中的数据是 34,5,6
+
+updateL.text( ( d,i ) => d );
+enter.append("text").text( (d,i) => d );
+
+// 此时 updateL 的长度为 2，enterL 的长度为 3
+
+// 接下来是 update 和 exit 部分；此时有 5 个 text；
+const data1 = [1,2,3];
+const TList = svg.data(data).selectAll("text"); 
+
+const update = TList.update(); // 对应的数据是 1,2,3
+const exit = Tlist.exit(); // 对应的是后面两个 text。此时他们无数据匹配
+update.text( ( d,i ) => d );
+exit.remove();
+
+
+// 此时 update 的长度是 3， exit 部分的长度为 2
+
+// 最后是只存在 exit 的部分,此时 data.length === 0
+const data1 = [];
+const TList = svg.data(data).selectAll("text"); 
+const exit = Tlist.exit(); // 对应的所有已经存在的 text。此时他们无数据匹配
+exit.remove();
+
+// 建议 exit 部分不进行移除操作，万一在用上呢
+{% endhighlight %}
+
+<h3>
+    总结
+</h3>
+<p>
+    到此为止，D3 中的数据和相关的元素操作基本介绍完成，这里只是简单记录，有兴趣可以继续深入学习。
+</p>
+
+
