@@ -1,0 +1,273 @@
+---
+layout: post
+title: D3 - 插值器 
+category: D3js
+subtitle: D3 - 插值器
+tags:
+    - D3js
+    - 前端开发
+---
+<h2>{{ page.title }}</h2>
+<blockquote>
+    <P>这里会介绍 D3 的茶插值器</P>
+</blockquote>
+<p>{{ page.date | date_to_string }}</p>
+<h3>
+    插值器介绍
+</h3>
+<p>
+    插值器提供了各种插值的方法，用于在两个值之间进行混合。值可以是数字，颜色，字符串，数组，甚至是深层嵌套的对象。看下面的例子：
+</p>
+{% highlight javascript %}
+
+const i = d3.interpolateNumber(10, 20);
+
+i(0.0); // 10
+i(0.2); // 12
+i(0.5); // 15
+
+{% endhighlight %}
+
+<p>
+    返回的函数 i 被称为插值器。给定起始值 a 和 结束值 b，它在域[0,1] 中取一个参数 t，并且返回 a 和 b 之间的相应内插值。内插值器通常返回等效的值，其中 0.0 对应是 a ， 1.0 对应的就是 b。
+</p>
+<p>
+    上面的描述可能有点难以理解，这其实就函数，函数产生一种映射关系，y = f(x); 其中 y 的取值范围为 [a,b]；而 x 的取值范围是 [0,1]（注意：x，y 都能取到端点值）; 只是在插值器中，x 的范围是由 D3 指定的，固定的 [0,1];
+    而 y 的取值范围是由用户指定 [a,b]。
+</p>
+<p>
+    你还可以对颜色使用插值器，获得一系列颜色值。
+</p>
+{% highlight javascript %}
+
+const color = d3.interpolateLab("steeblue", "brown")(0.5); // rgb(142,92,109)
+// 这个例子中，颜色的变化是从刚蓝变化到棕色之间。我们去了颜色感知的中间点。
+
+// 下面是跟复杂的例子
+const colorI = d3.interpolate({colors:["red", "blue"]}, {color: ["white", "black"]});
+coloeI(0.0); // { colors:["rgb(255, 0, 0)", "rgb(0, 0, 255)"] }
+colorI(0.5); // { colorI:["rgb(255, 128, 128)", "rgb(0, 0, 128)"] }
+colorI(1.0); // { colorI:["rgb(255, 255, 255)", "rgb(0, 0, 0)"] }
+
+{% endhighlight %}
+
+<h3>
+    通用插值器---- interpolate
+</h3>
+<p>
+    d3.interpolate(a, b) 是通用的插值器，它会根据你传入的参数不同，自动的调用定制的插值器生成器生成相应的插值器。
+</p>
+<ul>
+    <p>
+        返回两个任意值 a 和 b 之间的插值器。使用的内插值器的类型是基于结束值 b 的类型，类型的选取如下：
+    </p>
+    <li>
+        如果 b 是 null， undefined 或 boolean，则使用常量 b。（这里返回的插值器范围内的所有值都与 b 的类型一致）
+    </li>
+    <li>
+        如果 b 是数字，则会使用 <a name="number" href="#number">interpolateNumber</a> 返回插值器。
+    </li>
+    <li>
+        如果 b 是颜色或者可强制转换为颜色的字符串，则使用 <a name="rgb" href="#rgb">interpolateRgb</a> 返回插值器。
+    </li>
+    <li>
+        如果 b 是日期，则使用 <a name="date" href="#date">interpolateDate</a> 返回插值器。
+    </li>
+    <li>
+        如果 b 是一个字符串，则使用 <a name ="string" href="#string">interpolateString</a> 返回插值器。
+    </li>
+    <li>
+        如果 b 是数组，则使用 <a name="array" href="#array">interpolateArray</a> 返回插值器。
+    </li>
+    <li>
+        如果 b 可以强制转换成一个数字，则使用 <a name="number" href="#number">interpolateNumber</a> 返回插值器。
+    </li>
+    <li>
+        如果上述情况都不满足，则使用 <a name="object" href="#object">interpolateObject</a> 返回插值器。
+    </li>
+</ul>
+<p>
+    * 注意：当根据 b 选择了内插值器后，a 会被强制的转换为相应的类型。
+</p>
+<h3 name="number">
+    d3.interpolateNumber(a,b) --- 返回数字插值器
+</h3>
+<p>
+    返回数字 a 和 b 之间的插值器。下面是实现的代码：
+</p>
+{% highlight javascript %}
+
+function interpolate(t) {
+    return a * ( 1-t ) + b * t;
+}
+
+{% endhighlight %}
+<p>
+    * 注意：使用数字插值器时，应该避免以 0 作为插值的开始或者结束，当使用插值器的时候，获得值可能会转换为科学计数法，这样的值在某些浏览器中是无效的属性或样式属性值。eg：数字 0.0000001 将会被转换为 "1e-7"。所以应该尽量避免。
+</p>
+<h3>
+    d3.interpolateRound(a, b) --- 数字四舍五入插值器
+</h3>
+<p>
+    用法和 interpolateNumber 类似，只是会将插值器获得值转换为整数（规则是四舍五入）
+</p>
+<h3 name="string">
+    d3.interpolateString(a, b) --- 字符串插值器
+</h3>
+<p>
+    返回两个字符串 a 和 b 之间的插值器。字符串插值器查找嵌入在 a 和 b 中的数字，其中每个数字都是 js 中的 number 类型的形式。下面是一个字符串内可以检测的数字的例子： -1, 42, 3.14192, 和 6.0221413e+23。
+</p>
+<p>
+   对于 b 中嵌入的每个数字，插值器将尝试查找在 a 中对应的数字，这时使用 interpolateNumber 对着两组数字创建插值器。数字 b 的其余部分最为生成的字符串模板的一部分。看下面的例子：
+</p>
+{% highlight javascript %}
+
+const startString = "300 12px sans-serif";
+const endString = "500 36px Comic-Sans";
+
+const stringInterpolate = d3.interpolateString(startString, endString);
+stringInterpolate(0.5); // "400 24px Comic-Sans"
+
+{% endhighlight %}
+<p>
+    通过上面的例子可以看出，字符串不能转换为数字的模板部分会使用 b 的模板部分进行拼接。 
+</p>
+<h3 name="date">
+    d3.interpolateDate(a, b) --- 返回日期插值器
+</h3>
+<p>
+    返回日期 a, b 之间的插值。
+</p>
+<p>
+    * 注意：每次返回的 Date 值都是相同的 Date 实例。所以进行自定义修改时请注意。没有每次返回新的实例的原因是插值器通常是在动画中使用，这样会提升性能。
+</p>
+<h3 name="array">
+    d3.interpolateArray(a, b) --- 数组插值器
+</h3>
+<p>
+    返回两个数组 a 和 b 之间的插值器。
+</p>
+<p>
+    在使用数组插值器时，插值器内部会创建一个和 b 长度相同的数组。对于返回的每个元素，如果 a 中存在对应的值，则返回映射以后的值。如果 a 中不存在对应位置的元素，则直接返回 b 中的对应位置的元素作为静态值返回。看下面例子：
+</p>
+{% highlight javascript %}
+
+const startArray = [0,1];
+const endArray = [1,10,100];
+
+const arrayInter = d3.interpolateArray(startArray, endArray);
+arrayInter(0.5); // [0.5, 5.5, 100]
+
+{% endhighlight %}
+<p>
+    * 注意：和 interpolateDate 一样，每次返回的数组都是同一个实例的引用，这是出于性能的考虑。所以使用时要注意。
+</p>
+<h3 name="object">
+    d3.interpolateObject(a,b) --- 对象插值器
+</h3>
+<p>
+    返回两个对象 a 和 b 之间的插器。
+</p>
+<p>
+    在插值器内部，会创建一个和 b 具有相同属性的对象模板。如果 a 中存在相同属性，则使用属性值对象的插值器获取相应的映射值。如果 a 中不存在相同属性，则直接使用 b 中的属性值作为映射值。看下面例子：
+</p>
+{% highlight javascript %}
+
+const startObject = {x: 0, y: 1}
+const endObject = { x:1, y: 10, z: 100 }
+
+const objectInter = d3.interpolateObject(startObject, endObject);
+objectInter(0.5); // { x: 0.5, y:5.5, z: 100 }
+
+{% endhighlight %}
+<p>
+    同样，对象插值每次返回的是相同的对象实例，而不是每次返回新的对象。
+</p>
+<ul>
+    <p>以下插值器需要单独解析</p>
+    <li>d3.interpolateTransformCss(a,b)</li>
+    <li>d3.interpolateTransformSvg(a,b)</li>
+    <li>d3.interpolateZoom(a,b)</li>
+    <li>d3.interpolateDiscrete(values)</li>
+</ul>
+<h3>
+    采样（Sampling）
+</h3>
+<h4>
+    d3.quantize(interpolater, n)
+</h4>
+<p>
+    返回指定插值器的 n 个均匀间隔的样本，其中 n 是大于 1 的整数。第一个样本始终位于 t = 0, 最后一个样本始终位于 t = 1。这可以用于从给定插值器生成固定的样本数量。可以作为量化标度使用。
+</p>
+{% highlight javascript %}
+
+const quu = d3.quantize(d3.interpolateNumber(20, 50), 5);
+quu; // [20, 27.5, 35, 42.5, 50]
+
+{% endhighlight %}
+<p>
+    * 注意，如果使用的插值器时 d3.interpolateArray, d3.interpolateDate 和 d3.interpolateObject。这些插值器返回的内容需要自己为这些插值器的返回值创建一个副本。如果不这样做，你的得到的返回值是 t = 1 时对应的值。
+</p>
+{% highlight javascript %}
+
+const quu = d3.quantize(d3.interpolateArray([20,50], [30, 80]), 5);
+console.log("quu", quu, d3.interpolateNumber)
+// 获得结果是
+/**
+    [
+        [30, 80],
+        [30, 80],
+        [30, 80],
+        [30, 80],
+        [30, 80]
+    ]
+*/
+
+{% endhighlight %}
+<p>
+    这时，就需要对结果进行复制处理，以防出现的返回值是一样的，下面给出了处理数组的简单实例：
+</p>
+{% highlight javascript %}
+
+const arraySS = d3.interpolateArray([20,50], [30, 80]);
+const reSet = i => [...arraySS(i)] 
+const quu = d3.quantize(reSet, 5);
+console.log("quu", quu, d3.interpolateNumber)
+// 获得结果是
+/**
+    [
+        [20, 50],
+        [22.5, 57.5],
+        [25, 65],
+        [27.5, 72.5],
+        [30, 80]
+    ]
+*/
+
+{% endhighlight %}
+<h3 name="rgb">
+    色彩空间
+</h3>
+<h4>
+    interpolate.gamma --- 根据调用的插值器返回一个新的插值器
+</h4>
+<p>
+    能使用 gamma 的插值器为：interpolateRgb, interpolateCubehelinx 或者 interpolateCubehelinxLong。使用指定的 gamma 值返回相同类型的新插值器。看下面例子：
+</p>
+{% highlight javascript %}
+
+const color = d3.interpolateRgb.gamma(2.2)("purple", "orange")
+
+{% endhighlight %}
+<p>
+    gamma 值会对输入的颜色值进行校正，2.2 的 gamma 值会将输入的颜色转换成最贴近自然的颜色。
+</p>
+<h4>
+    d3.interpolateRgb(a, b) --- rgb 颜色插值器
+</h4>
+<p>
+    这个插值器可以使用 gamma 进行颜色校正，gamma 的默认值是 1.0（如果不指定的话。）输入的参数 a 和 b 不必是 RGB；d3 将使用 d3.rgb 将其转换为 RGB。返回值是 RGB 字符串。
+</p>
+<p>
+    颜色插值的具体区别需要相关知识，这里这记录这一个插值器，需要的话后续再研究。
+</p>
