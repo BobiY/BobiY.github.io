@@ -1,0 +1,529 @@
+---
+layout: post
+title: D3 中的比例尺和坐标轴 
+category: D3js
+subtitle: D3 中的比例尺和坐标轴
+tags:
+    - D3js
+    - 前端开发
+---
+<h2>{{ page.title }}</h2>
+<blockquote>
+    <P>D3 中的比例尺和坐标轴</P>
+</blockquote>
+<p>{{ page.date | date_to_string }}</p>
+<p>注意： 采用的 D3 版本是 V5 </p>
+<p>
+    D3 的 Scales 值一种抽象，它将数据映射到视图，这样子就可以不用关心视图具体要怎么显示，而只要确保数据的准确性就好。
+</p>
+<h3>
+    D3 中的比例尺
+</h3>
+<ul>
+    <li>
+        线性比例尺 <a href="#continuous" name="continuous">Continuous</a>
+    </li>
+    <li>
+        序数比例尺<a href="#Sequential" name="Sequential">Sequential</a>
+    </li>
+    <li>
+        发散比例尺<a href="#Diverging" name="Diverging">Diverging</a>
+    </li>
+    <li>
+        量化比例尺<a href="#Quantize" name="Quantize">Quantize</a>
+    </li>
+    <li>
+        位数比例尺<a href="#Quantile" name="Quantile">Quantile</a>
+    </li>
+    <li>
+        阈值比例尺<a href="#Threshold" name="Threshold">Threshold</a>
+    </li>
+    <li>
+        序数比例尺<a href="#Ordinal" name="Ordinal">Ordinal</a>
+    </li>
+</ul>
+
+<h3 name="continuous">
+    线性比例尺
+</h3>
+<p>
+    线性比例尺的分类众多，他们都会遵循一定的规则；下面是他们共同的 API 调用。
+</p>
+<h4>
+    线性比例尺公共 API
+</h4>
+<p>
+    线性比例尺将连续的域值映射到连续输出的范围。如果范围是数字，则可以进行反推操作。
+</p>
+<h5>
+    continuous(value) （这个方法是获取映射值）
+</h5>
+<p>
+    给定一个域值的范围，返回相应值的返回。如果给定的值在域外，而且没有对域外的值进行限制，则会自动推算出对应的映射值，使得不在域值范围内的值也能够使用。看下面的例子：
+</p>
+{% highlight javascript %}
+
+const x = d3.scaleLinear()
+            .domain([10, 130])
+            .range([0, 960])
+
+x(20); // 80
+x(50); // 320
+
+// 上面的写法等价于下面的写法
+
+const x1 = d3.scaleLinear([10, 130], [0, 960])
+{% endhighlight %}
+<p>
+    使用时，第一个数组的两个数字是你的数据的范围，第二个数组是在视图上对应的 px 范围。这点要注意。
+</p>
+<h5>
+    continuous.invert(value) （这是映射值反推域值）
+</h5>
+<p>
+    使用这个 API 时，你的范围和域值都应该是数字，这点要注意。它的作用是根据你视图上的 px 值，反推出对应的具体数据值。看下面例子：
+</p>
+{% highlight javascript %}
+
+const x = d3.scaleLinear()
+            .domian([10,130])
+            .range([0, 960])
+
+x.invert(80); //20
+x.invert(320); //50
+
+{% endhighlight %}
+<p>
+    * 注意：如果没有限制超出范围值的显示，则会自动推算出相应的值。而且此方法仅支持数字，如果不是数字，则会返回 NaN。
+</p>
+<p>
+    另外，使用 invert(x) 和其对应的 y 值只是近似的相同，这是由于浮点小数的精度问题引起的。这点需要注意。
+</p>
+<h5>
+    continuous.domain([value]) （设置要显示的数字范围）
+</h5>
+<p>
+    此选项如果指定了，就会使用指定的域的数字数组。这个数组必须至少包含两个元素。如果指定的不是数字，会被强制转换为数组。如果未指定，则返回当前比例尺的实例。 看下面例子：
+</p>
+{% highlight javascript %}
+
+const color = d3.scaleLinear()
+                .domian([-1,0,1])
+                .range("red", "#fff", "green");
+
+color(-0.5); // rgb(255,128,128)
+color(0.5); // rgb(128,192,128)
+
+{% endhighlight %}
+<p>
+    * 注意：指定的域的范围必须是按照升序或者降序排列。如果域和范围的长度不同（M，N）。则仅仅只会取 min(M,n) 长度的元素。看下面例子：
+</p>
+{% highlight javascript %}
+
+const  xL1 = d3.scaleLinear()
+                .domain([-1,0,3])
+                .range([0,30]);
+
+console.log("xL1", xL1(1)); // 60
+
+{% endhighlight %}
+<p>
+    从上面例子可以看出，当域和范围的长度不同时，映射的返回时看最短的数组的元素个数。所以 xL1(1) 的值是 60，是推断出来的值，如果设定了超出范围不进行自动推断的话，这个值获取的应该是最大值 30.
+</p>
+<h5>
+    continuous.range([range]) （指定要显示的范围）
+</h5>
+<p>
+    范围的指定规则与 domian 一致。但是 range 中的数组元素不必一定为数字；range 是使用插值器实现的，所以支持任意数据类型。但是如果想要进行反推操作，一定要是数字范围。
+</p>
+<h5>
+    continuous.rangeRound([range]) （设置要显示的数字范围）
+</h5>
+<p>
+    将 range 设置为指定的数组，用法和 range 一样，只是他会将获取的值进行四舍五入。它等价于下面的代码：（需要对插值器有所了解）
+</p>
+{% highlight javascript %}
+
+const x = d3.scaleLinear()
+            .domian([10,130])
+            .range([0, 960])
+            .interpolate(d3.interpolateRound)
+
+{% endhighlight %}
+<p>
+    做四舍五入的操作主要是为了在画图是防止锯齿现象的出现。注意：此插值器只能用于数值范围。
+</p>
+<h5>
+    continuous.clamp(clamp) （值为 true or false）
+</h5>
+<p>
+    如果指定了为 true 时，在输入的值超出范围域值的范围时，不会进行推算，而是返回对应的边缘值。而且这个值也同样会限制 invert 的使用。看下面的例子：
+</p>
+{% highlight javascript %}
+
+const x = d3.scaleLinear()
+            .domian([10,130])
+            .range([0,960]);
+
+x(-10); // -160, 这是在 range 外的值
+x.invert(-160); // -10，这是在 domain 的值 
+
+x.clamp(true);
+x(-10); // 0, 不会推算出 range 外的值
+x.invert(-160); // 10， 反推不出 domain 的值
+
+{% endhighlight %}
+<p>
+    clamp 的默认值是 false，所以不设定的话会进行推算、
+</p>
+<h5>
+    continuous.unknow([value]) （设置当找不到映射值时显示的内容）
+</h5>
+<p>
+    如果没有找到映射值，就会显示设置的值，如果没有设置相应的值，则会显示默认的 undefined。这是一种回退方案，给出一个醒目的提示。看下面的例子：
+</p>
+{% highlight javascript %}
+
+const xL = d3.scaleTime()
+    .domain([new Date(2007, 3, 20), new Date(2007, 4, 5)])
+    .range([0, 300])
+    .unknown("xxxx")
+    .clamp(true)
+console.log(xL("str")); // 返回的是 unknown 设置的 xxxx 
+
+{% endhighlight %}
+<h5>
+    continuous.interpolate(imterpolate) （设置插值器）
+</h5>
+<p>
+    设定当前比例尺的插值器。如果不指定，则会使用默认的插值器。看下面代码：
+</p>
+{% highlight javascript %}
+
+const color = d3.scaleLinear()
+                .domain([-100, 0, 100])
+                .range("red", "#fff", "green");
+
+// 上面的代码会在内部创建两个颜色插值器：
+
+const i0 = d3.interpoalte("red", "#fff");
+const i1 = d3.interpolate("#fff", "green");
+
+// 需要指定插值器常用在更改插值的颜色空间（目前不知道啥意思？？？）
+
+const color1 = d3.scaleLinear()
+                .domian([10, 100])
+                .range(["brown", "steelblue"])
+                .interpolate(d3.interpolateHcl);
+
+// 或者是需要调整颜色的 gamma 的值：
+
+const color2 = d3.scaleLinear()
+                .domian([10, 100])
+                .range(["brown", "steelblue"])
+                .intrerpolate(d3.interpoalteCubehelix.gamma(3));
+{% endhighlight %}
+<h5>
+    continuous.ticks([count]) （设置生成坐标轴时的刻度个数）
+</h5>
+<p>
+    设置坐标轴的刻度个数；如果没有指定，则会默认生成 10 个刻度值（注意：这个刻度会根据指定的数值进行调整，生成的个数与指定的值会存在差距。而是取决于 domian 指定的范围。）
+</p>
+<p>
+    更加详细的信息可以参考 d3-array 的 ticks。
+</p>
+<h5>
+    continuous.tickFormat([count [, specifier]]) （设置刻度文本的提示文字的格式）
+</h5>
+<p>
+    设置刻度文本的格式化提示文字。count 与 ticks 的参数一致；specifier 是一个可选的格式化字符串。看下面的代码：
+</p>
+{% highlight javascript %}
+
+const x = d3.scaleLinear()
+            .domian([-1,1])
+            .range([0. 960]);
+
+const ticks = x.ticks(5);
+tickFormat = x.tickFormat(5, "+%");
+
+ticks.map(tickFormat); // ["-100%", "-50%", "0%", "50%", "100%"]
+
+{% endhighlight %}
+<h5>
+    continuous.nice([count]) （更好的整理开始和结束值）
+</h5>
+<p>
+    这个 API 与 ticks 的作用一样，但是当设置的 domian 为 [0.201479, 0.996679] 为这样时，它会将开始和结束的值处理后 [0.2, 1.0] 再去生成刻度值，这样会使刻度值可读性更好。
+</p>
+<h5>
+    continuous.copy() （拷贝一个已经存在的比例尺）
+</h5>
+<p>
+    拷贝会返回一个新的比例尺，而不是只是引用，意思就是连个比例尺不会互相影响。
+</p>
+<h5>
+    d3.tickFormat(start, stop, count[, specifier]) （返回一个刻度格式化函数）
+</h5>
+<p>
+    返回一个适合刻度值显示的数字格式化函数，根据刻度值之间的固定间隔自动计算适当的精度，这个由 d3.tickStep 计算。
+</p>
+<p>
+    最后一个参数是自定义的格式，格式前的刻度是由 d3 自动设置的，以适合刻度间隔。
+</p>
+<h5>
+    d3.scaleLinear([[domain,] range]) --- 线性比例尺
+</h5>
+<p>
+    此比例尺的 domian 和 range 都要求是连续的，遵循线性方程： y = kx + b; 典型的应用场景就是将抽象的数据转换为位置，长度等可视的元素。这在创建柱状图和折现图时非常有用。
+</p>
+<h5>
+    d3.scalePow([[domain,] range]) --- n 次方程比例尺
+</h5>
+<p>
+    这个比例尺会对照 domian 和 range ，生成类似于 y = n * x ^ k + b 的数学 k 次方程的对应关系。k 是需要自定义指定的常量。看下面的例子：
+</p>
+{% highlight javascript %}
+
+const x = d3.scalePow.domian([0, 100])
+            .range([0,30])
+            .exponent(0.5)
+
+x(0); // 0
+x(50); // 21
+x(100); // 30
+
+{% endhighlight %}
+<p>
+    使用 continuous.exponent(number) 指定函数对应的幂指数。 
+</p>
+<h5>
+    d3.scaleSqrt([[domain,] range]) --- 对应于数学上的开平方函数
+</h5>
+<p>
+    这个比例尺对应的是 d3.scalePow().enponent(0.5)； 它会生成类似于 y = n * x ^ 0.5 + b 的方程的对应关系。
+</p>
+<h5>
+    d3.scaleLog([[domain,] range]) --- 使用对数函数计算比例尺
+</h5>
+<p>
+    这个比例尺会使用类似与 y = n * log(x) + b ,这时 x 的取值范围就是 range ， y 的取值范围就是 domain 的范围。下面是一个简单的示例：
+</p>
+{% highlight javascript %}
+
+const x = d3.scaleLog([[domain,] range])
+            .domian([10, 130])
+            .range([0, 960])
+
+x(10); // 0
+x(50); // 602.3764...
+x(100); // 960
+
+{% endhighlight %}
+<h5>
+    d3.scaleTime([[domain,] range]) --- 时间比例尺
+</h5>
+<p>
+    这个比例尺和 scaleLinear 基本一样，只是接受的 domian 的范围数组是由 Date 组成。看下面的示例：
+</p>
+{% highlight javascript %}
+
+const x = d3.scaleTime()
+            .domain([new Date(2007, 3, 20), new Date(2007, 4, 5)])
+            .range([0, 300])
+
+x(93); // new Date(2007, 3, 20)
+x(99.47); // new Date(2007, 4,  10)
+{% endhighlight %}
+<h5>
+    d3.scaleSequential([[domain,] range])
+</h5>
+<p>
+    这个比例尺接受的是接受连续的 domian，将其映射到指定或者自定义的 interpolate（插值器）上，也就是 range 是的返回将由这个插值器生成。（这个一般用于颜色的生成）看下面的例子：
+</p>
+{% highlight javascript %}
+
+const x = d3.scaleSquential()
+            .domain([0,100])
+            .interpolate(d3.interpoalteRainbow)
+
+x(0); // rgb(110, 64, 170)
+x(50); // rgb(175, 240, 91)
+{% endhighlight %}
+<p>
+    指定的插值器可以是 D3 提供的，也可以是自定义的，想了解更多可以阅读 D3-interpolate 进行了解。 
+</p>
+<p>
+    scaleSquential 的 range 是由 interpolate 指定的，所以不需要再次指定。（而且也不能直接指定 range） 
+</p>
+<h5>
+    d3.scaleQuantize([[domain,] range])
+</h5>
+<p>
+    此比例尺接受连续性的 domian，但是接受的 range 是离散型的。range 的中的每个值都将对应 domain 中的一个数据范围，domian 会形成 range 的参数的 length 个范围。看下面例子：
+</p>
+{% highlight javascript %}
+
+const x = d3.scaleQuantize()
+            .domain([0,100])
+            .range(["a", "b", "c", "d"])
+
+x(10); // a
+x(50); // c
+x(100); // d
+{% endhighlight %}
+<ul>
+    <p>上个例子中的每个 range 值都会对应于 domian 中的一个区域，如下：</p>
+    <li>对应于 a 的区域是 [0, 25)</li>
+    <li>对应于 b 的区域是 [25, 50)</li>
+    <li>对应于 c 的区域是 [50, 75)</li>
+    <li>对应于 d 的区域是 [75, 100]</li>
+</ul>
+<p>
+    * 注意：如果不想使获得值不在 range 之中，那么就要指定 .clamp(true) 来限制获取值在 range 的范围之内。
+</p>
+<h5>
+    d3.scaleQuantile([[domain,] range])
+</h5>
+<p>
+    此比例尺接受的 domain 和 range 的参数都是离散型的值。看下面的例子：
+</p>
+{% highlight javascript %}
+
+const myData = [0, 5, 7, 10, 20, 30, 35, 40, 60, 62, 65, 70, 80, 90, 100];
+
+const quantileScale = d3.scaleQuantile()
+  .domain(myData)
+  .range(['lightblue', 'orange', 'lightgreen']);
+
+quantileScale(0);   // returns 'lightblue'
+quantileScale(20);  // returns 'lightblue'
+quantileScale(30);  // returns 'orange'
+quantileScale(65);  // returns 'lightgreen'
+
+{% endhighlight %}
+<p>
+    可以看到，和 scaleQuantize 类似 scaleQuantile 也会将 domain 分成等份，去对应 range 中的每个数据，具体的分组可以通过 quantileScale.quantiles() 访问到。分组规则也和 scaleQuantize 类似，会根据 range 参数的长度进行分组。
+</p>
+<h5>
+    d3.scaleTheshold([[domain,] range])
+</h5>
+<p>
+    此比例尺是将连续输入的 domain 值映射到离散的 range 中。如果 range 指定的值有 n 个，则将会产生 n-1 个分割点对 domain 进行切割。看下面例子：
+</p>
+{% highlight javascript %}
+
+const thresholdScale = d3.scaleThreshold()
+                         .domain([0, 50, 100])
+                         .range(['#ccc', 'lightblue', 'orange', '#ccc']);
+
+thresholdScale(-10);  // returns '#ccc'
+thresholdScale(20);   // returns 'lightblue'
+thresholdScale(70);   // returns 'orange'
+thresholdScale(110);  // returns '#ccc'
+
+{% endhighlight %}
+<ul>
+    <p>上例中将产生 3 个分割点，domain 和 range 的对应情况如下：
+    </p>
+    <li>"#ccc" 对应 (-无穷, 0)</li>
+    <li>"lightblue" 对应 [0, 50)</li>
+    <li>"orange" 对应 [50, 100)</li>
+    <li>"#333" 对应 [100, +无穷)</li>
+</ul>
+<h5>
+    d3.scaleOrdinal([[domain,] range])
+</h5>
+<p>
+    此比例尺是将离散的 domain 数组映射到 range 数组中，输出的值是由 range 决定的。如果 range 的长度比 domain 短，则 range 数组将会进行循环输出。看下面代码：
+</p>
+{% highlight javascript %}
+
+const data = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const x = d3.scaleOrdinal()
+            .domain(data)
+            .range(["black", "#ccc", "#aaa"])
+    
+x('Jan');  // returns 'black';
+x('Feb');  // returns '#ccc';
+x('Mar');  // returns '#aaa';
+x('Apr');  // returns '#black';
+{% endhighlight %}
+<p>
+    * 注意：默认情况下，当你输入的值不在 domain 中，则默认会将输入值添加到 domain 中。然后根据 range 对应的情况去获取相应的值。
+</p>
+<p>
+    如果你不想让不存在的值获取到返回值，则指定上面提到的 .unknown("xxx") 即可。看下面代码：
+</p>
+{% highlight javascript %}
+
+x.unknown('xxx');
+x('Tuesday'); // returns 'xxx'
+{% endhighlight %}
+<h5>
+    d3.scaleBand([[domain,] range])
+</h5>
+<p>
+    这个比例尺会将离散的 domain 值映射到连续的 range 值中。
+</p>
+<p>
+    这个比例尺在我们创建柱状图时非常的有用，因为这个比例尺已经将每个柱形图的宽度和各个图形之间的 padding 值规划好了，我们只需要使用计算好的值进行画图即可。
+</p>
+<p>
+    scaleBand 会将 range 划分为 n 个 bands ( n 是 domain 数组的数值个数) 并且会将设定的 padding 值加进去。然后会计算出每个 band 的位置和宽度。看下面代码：
+</p>
+{% highlight javascript %}
+
+const bandScale = d3.scaleBand()
+                    .domain(['Mon', 'Tue', 'Wed', 'Thu', 'Fri'])
+                    .range([0, 200]);
+
+bandScale('Mon'); // returns 0
+bandScale('Tue'); // returns 40
+bandScale('Fri'); // returns 160
+{% endhighlight %}
+<p>
+    每个 band 的宽度可以使用 .bandWidth() 来访问。
+</p>
+{% highlight javascript %}
+
+bandScale.bandWidth(); // 40
+{% endhighlight %}
+<p>
+    其中 padding 值会分为两个，分别是 paddingInner 和 paddingOuter。band 还有个 step() 方法用来获取每一个刻度的步长参数。
+</p>
+<img src="{{ site.baseurl }}/img/band.png" alt="暂无图片..." />
+<p>
+    上图演示了 scaleBand 中各个参数的位置。
+</p>
+<h5>
+    d3.scalePoint([[domain,] range])
+</h5>
+<p>
+    将离散的 domain 值映射到连续的 range 值中。看下面的例子：
+</p>
+{% highlight javascript %}
+
+const pointScale = d3.scalePoint()
+                    .domain(['Mon', 'Tue', 'Wed', 'Thu', 'Fri'])
+                    .range([0, 500]);
+
+pointScale('Mon');  // returns 0
+pointScale('Tue');  // returns 125
+pointScale('Fri');  // returns 500
+{% endhighlight %}
+<p>
+    与 band 一样，scalePoint 也可以指定 padding，但是只有 paddingOuter 可以指定，但是 scalePoint 只有 padding 可以进行指定，看下面代码：
+</p>
+{% highlight javascript %}
+
+pointScale.padding(0.25);
+
+pointScale('Mon');  // returns 27.77...
+pointScale.step();  // returns 111.11...
+{% endhighlight %}
+<img src="{{ site.baseurl }}/img/point.png" alt="暂无图片..." />
+<p>
+    上图演示了 scalePoint 中各个参数的位置。
+</p>
