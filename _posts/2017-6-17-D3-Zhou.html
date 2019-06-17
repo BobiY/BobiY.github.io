@@ -58,7 +58,7 @@ tags:
     <li>
         先看 x 轴， x 轴的两种主要在于刻度朝向的区别 d3.axisTop 刻度朝上； d3.axisBottom 刻度朝下
     </li>
-    <svg id="zhou" height="600" width="600" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
+    <svg id="zhou" height="100" width="600" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
     <script>
         const zhouSvg = d3.select("#zhou");
 
@@ -79,17 +79,49 @@ tags:
                .attr("transform", "translate(20, 20)")
                .text("axisTop")
     </script>
-    <svg id="zhou1" height="600" width="600" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
+    <svg id="zhou1" height="100" width="600" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
     <script>
         const zhouSvg1 = d3.select("#zhou1");
          const zhouXB = d3.axisBottom(linear);
          zhouSvg1.append("g")
-                .attr("transform", "translate(50, 75)")
+                .attr("transform", "translate(50, 50)")
                 .call(zhouXB)
         zhouSvg1.append("text")
                 .attr("fill", "#333")
                 .attr("transform", "translate(20, 20)")
                 .text("axisBottom")
     </script>
+    <li>
+        接下来是 y 轴， axisLeft 刻度朝左；axisRight 刻度朝右。
+    </li>
+    <svg id="zhou2" height="600" width="100" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
+    <script>
+        const zhouSvg2 = d3.select("#zhou2");
+
+        // 创建坐标轴 (刻度向上)
+        const zhouYL = d3.axisLeft(linear)
+        zhouSvg2.append("g")
+                .attr("transform", "translate(50, 50)")
+                .call(zhouYL)
+        zhouSvg2.append("text")
+               .attr("fill", "#333")
+               .attr("transform", "translate(20, 20)")
+               .text("axisLeft")
+    </script>
+    <svg id="zhou3" height="100" width="600" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
+    <script>
+        const zhouSvg3 = d3.select("#zhou3");
+         const zhouYR = d3.axisBottom(linear);
+         zhouSvg3.append("g")
+                .attr("transform", "translate(50, 50)")
+                .call(zhouYR)
+        zhouSvg3.append("text")
+                .attr("fill", "#333")
+                .attr("transform", "translate(20, 20)")
+                .text("axisRight")
+    </script>
 </ul>
+<p>
+    结语：坐标轴只是一个画图的工具，主要还是要通过比例尺去转化数据。
+</p>
 
