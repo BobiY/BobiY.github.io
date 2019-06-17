@@ -277,6 +277,53 @@ ticks.map(tickFormat); // ["-100%", "-50%", "0%", "50%", "100%"]
 <p>
     此比例尺的 domian 和 range 都要求是连续的，遵循线性方程： y = kx + b; 典型的应用场景就是将抽象的数据转换为位置，长度等可视的元素。这在创建柱状图和折现图时非常有用。
 </p>
+<svg id="scaleLinear" height="100" width="500" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
+<script>
+     const scaleLinear = d3.scaleLinear()
+                          .domain([30, 50])
+                          .range([0,400])
+    const scaleLinear1 = d3.select("#scaleLinear");
+    const scaleg = scaleLinear1
+                .selectAll("g")
+                .data([30, 32, 34, 40, 45, 50])
+                .enter()
+                .append("g")
+    scaleg.append("circle")
+            .attr("r", 5)
+            .attr("cx", d => scaleLinear(d) + 25)
+            .attr("cy", 50)
+            .attr("fill", "#f60")
+    scaleg.append("text")
+            .text(d => d)
+            .attr("fill", "#333")
+            .attr("transform", d =>"translate(" + (scaleLinear(d) + 15) +" ,70)")
+
+</script>
+<p>
+    实现代码如下
+</p>
+{% highlight javascript %}
+
+const scaleLinear = d3.scaleLinear()
+                        .domain([30, 50])
+                        .range([0,400])
+const scaleLinear1 = d3.select("#scaleLinear");
+const scaleg = scaleLinear1
+            .selectAll("g")
+            .data([30, 32, 34, 40, 45, 50])
+            .enter()
+            .append("g")
+scaleg.append("circle")
+        .attr("r", 5)
+        .attr("cx", d => scaleLinear(d) + 25)
+        .attr("cy", 50)
+        .attr("fill", "#f60")
+scaleg.append("text")
+        .text(d => d)
+        .attr("fill", "#333")
+        .attr("transform", d =>"translate(" + (scaleLinear(d) + 15) +" ,70)")
+
+{% endhighlight %}
 <h5>
     d3.scalePow([[domain,] range]) --- n 次方程比例尺
 </h5>
@@ -297,12 +344,84 @@ x(100); // 30
 <p>
     使用 continuous.exponent(number) 指定函数对应的幂指数。 
 </p>
+<svg id="scalePow" height="100" width="500" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
+{% highlight javascript %}
+
+const scalePow = d3.scalePow()
+                    .domain([30, 50])
+                    .range([0,400])
+const scalePow1 = d3.select("#scalePow");
+const scaleg1 = scalePow1
+            .selectAll("g")
+            .data([30, 32, 34, 40, 45, 50])
+            .enter()
+            .append("g")
+scaleg1.append("circle")
+        .attr("r", 5)
+        .attr("cx", d => scalePow(d) + 25)
+        .attr("cy", 50)
+        .attr("fill", "#f60")
+scaleg1.append("text")
+        .text(d => d)
+        .attr("fill", "#333")
+        .attr("transform", d =>"translate(" + (scalePow(d) + 15) +" ,70)")
+
+{% endhighlight %}
+<p>
+    可以看到 scalePow 和 scaleLinear 的计算比例差距不大。
+</p>
 <h5>
     d3.scaleSqrt([[domain,] range]) --- 对应于数学上的开平方函数
 </h5>
 <p>
-    这个比例尺对应的是 d3.scalePow().enponent(0.5)； 它会生成类似于 y = n * x ^ 0.5 + b 的方程的对应关系。
+    这个比例尺对应的是 d3.scalePow().enponent(0.5)； 它会生成类似于 y = n * x ^ 0.5 + b 的方程的对应关系。这个一般使用在使用圆的面积表征数据的差异时使用
 </p>
+<svg id="scaleSqrt" height="100" width="500" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
+<script>
+    const scaleSqrt = d3.scaleSqrt()
+                          .domain([30, 50])
+                          .range([0,30])
+    const scaleSqrt1 = d3.select("#scaleSqrt");
+    const scaleg2 = scaleSqrt1
+                .selectAll("g")
+                .data([40, 42, 45, 48, 50])
+                .enter()
+                .append("g")
+    scaleg2.append("circle")
+            .attr("r", d => scaleSqrt(d))
+            .attr("cx", (d, i) => i * (50 + scaleSqrt(d)) + 50)
+            .attr("cy", 50)
+            .attr("fill", "#f60")
+    scaleg2.append("text")
+            .text(d => d)
+            .attr("fill", "#333")
+            .attr("transform", (d, i) =>"translate(" + (i * (50 + scaleSqrt(d)) + 40) +" ,90)")
+</script>
+<p>
+    实现的代码如下：
+</p>
+{% highlight javascript %}
+
+const scaleSqrt = d3.scaleSqrt()
+                    .domain([30, 50])
+                    .range([0,30])
+const scaleSqrt1 = d3.select("#scaleSqrt");
+const scaleg2 = scaleSqrt1
+            .selectAll("g")
+            .data([40, 42, 45, 48, 50])
+            .enter()
+            .append("g")
+scaleg2.append("circle")
+        .attr("r", d => scaleSqrt(d))
+        .attr("cx", (d, i) => i * (50 + scaleSqrt(d)) + 50)
+        .attr("cy", 50)
+        .attr("fill", "#f60")
+scaleg2.append("text")
+        .text(d => d)
+        .attr("fill", "#333")
+        .attr("transform", (d, i) =>"translate(" + (i * (50 + scaleSqrt(d)) + 40) +" ,90)")
+
+{% endhighlight %}
 <h5>
     d3.scaleLog([[domain,] range]) --- 使用对数函数计算比例尺
 </h5>
@@ -320,6 +439,52 @@ x(50); // 602.3764...
 x(100); // 960
 
 {% endhighlight %}
+<svg id="scaleLog" height="100" width="500" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
+<script>
+const scaleLog = d3.scaleLog()
+                    .domain([10, 100000])
+                    .range([0, 400]);
+const scaleLog1 = d3.select("#scaleLog");
+const scaleg3 = scaleLog1
+        .selectAll("g")
+        .data([10, 100, 1000, 10000, 100000])
+        .enter()
+        .append("g")
+scaleg3.append("circle")
+        .attr("r", 5)
+        .attr("cx", (d, i) => scaleLog(d) + 50)
+        .attr("cy", 50)
+        .attr("fill", "#f60")
+scaleg3.append("text")
+        .text(d => d)
+        .attr("fill", "#333")
+        .attr("transform", (d, i) =>"translate(" + (scaleLog(d) + 40) +" ,70)")
+</script>
+<p>
+    实现代码如下：
+</p>
+{% highlight javascript %}
+
+const scaleLog = d3.scaleLog()
+                    .domain([10, 100000])
+                    .range([0, 400]);
+const scaleLog1 = d3.select("#scaleLog");
+const scaleg3 = scaleLog1
+        .selectAll("g")
+        .data([10, 100, 1000, 10000, 100000])
+        .enter()
+        .append("g")
+scaleg3.append("circle")
+        .attr("r", 5)
+        .attr("cx", (d, i) => scaleLog(d) + 50)
+        .attr("cy", 50)
+        .attr("fill", "#f60")
+scaleg3.append("text")
+        .text(d => d)
+        .attr("fill", "#333")
+        .attr("transform", (d, i) =>"translate(" + (scaleLog(d) + 40) +" ,70)")
+
+{% endhighlight %}
 <h5>
     d3.scaleTime([[domain,] range]) --- 时间比例尺
 </h5>
@@ -334,6 +499,69 @@ const x = d3.scaleTime()
 
 x(93); // new Date(2007, 3, 20)
 x(99.47); // new Date(2007, 4,  10)
+{% endhighlight %}
+<svg id="scaleTime" height="100" width="500" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
+<script>
+        const getStrTime = (date, i) => {
+
+            return `
+                    ${date.getFullYear()}.
+                    ${date.getMonth() + 1}.
+                    ${date.getDate()}
+            `
+        }
+        const scaleTime = d3.scaleTime()
+                        .domain([new Date(2016, 0, 1), new Date(2017, 0, 1)])
+                        .range([0, 400]);
+        const scaleTime1 = d3.select("#scaleTime");
+        const scaleg4 = scaleTime1
+                .selectAll("g")
+                .data([new Date(2016, 0, 1), new Date(2016, 3, 1), new Date(2017, 0, 1), new Date(2016, 5, 15), new Date(2016, 8, 20)])
+                .enter()
+                .append("g")
+    scaleg4.append("circle")
+            .attr("r", 5)
+            .attr("cx", (d, i) => scaleTime(d) + 50)
+            .attr("cy", 50)
+            .attr("fill", "#f60")
+    scaleg4.append("text")
+            .text(d => getStrTime(d))
+            .attr("fill", "#333")
+            .attr("transform", (d, i) =>"translate(" + (scaleTime(d) ) +" ,70)")
+        
+    </script>
+<p>
+    实现代码如下：
+</p>
+{% highlight javascript %}
+
+const getStrTime = (date, i) => {
+
+    return `
+            ${date.getFullYear()}.
+            ${date.getMonth() + 1}.
+            ${date.getDate()}
+    `
+}
+const scaleTime = d3.scaleTime()
+                .domain([new Date(2016, 0, 1), new Date(2017, 0, 1)])
+                .range([0, 400]);
+const scaleTime1 = d3.select("#scaleTime");
+const scaleg4 = scaleTime1
+        .selectAll("g")
+        .data([new Date(2016, 0, 1), new Date(2016, 3, 1), new Date(2017, 0, 1), new Date(2016, 5, 15), new Date(2016, 8, 20)])
+        .enter()
+        .append("g")
+scaleg4.append("circle")
+    .attr("r", 5)
+    .attr("cx", (d, i) => scaleTime(d) + 50)
+    .attr("cy", 50)
+    .attr("fill", "#f60")
+scaleg4.append("text")
+    .text(d => getStrTime(d))
+    .attr("fill", "#333")
+    .attr("transform", (d, i) =>"translate(" + (scaleTime(d) ) +" ,70)")
+
 {% endhighlight %}
 <h5>
     d3.scaleSequential([[domain,] range])
