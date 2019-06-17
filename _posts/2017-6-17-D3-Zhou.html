@@ -71,10 +71,25 @@ tags:
 
         // 创建坐标轴 (刻度向上)
         const zhouXT = d3.axisTop(linear)
+        zhouSvg.append("g")
+                .attr("transform", "translate(50, 50)")
+                .call(zhouXT)
+        zhouSvg.append("text")
+               .attr("fill", "#333")
+               .attr("transform", "translate(20, 20)")
+               .text("axisTop")
     </script>
     <svg id="zhou1" height="600" width="600" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
     <script>
-         const zhouXT = d3.axisBottom(linear)
+        const zhouSvg1 = d3.select("#zhou1");
+         const zhouXB = d3.axisBottom(linear);
+         zhouSvg1.append("g")
+                .attr("transform", "translate(50, 75)")
+                .call(zhouXB)
+        zhouSvg1.append("text")
+                .attr("fill", "#333")
+                .attr("transform", "translate(20, 20)")
+                .text("axisBottom")
     </script>
 </ul>
 
