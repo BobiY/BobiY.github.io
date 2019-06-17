@@ -1,0 +1,80 @@
+---
+layout: post
+title: D3 坐标轴
+category: D3js
+subtitle: D3 坐标轴
+tags:
+    - D3js
+    - 前端开发
+---
+<h2>{{ page.title }}</h2>
+<blockquote>
+    <P>D3 坐标轴</P>
+</blockquote>
+<p>{{ page.date | date_to_string }}</p>
+<p>注意： 采用的 D3 版本是 V5 </p>
+<p>
+    这里说的坐标轴只是 D3 提供的根据比例尺计算的值在 svg 中画出可视化的坐标轴。
+</p>
+<h3>
+    坐标轴的 API
+</h3>
+<p>
+    由于坐标轴的功能单一，所以 D3 提供的坐标轴的 API 也不多，下面会逐一说明：
+</p>
+<ul>
+    <li>
+        axis.tickPadding  指定的是刻度文字和刻度线之间的距离，单位是 px。默认值是 3px。
+    </li>
+    <li>
+        axis.tickSizeInner 指定的是除了轴两端的所有刻度线的长度，默认是 6px。
+    </li>
+    <li>
+        axis.tickSizeOuter 指定的是轴两端的刻度线的长度，默认是 6px。
+    </li>
+    <li>
+        axis.tickSize 指定的是 tickSizeInner 和 tickSizeOuter 的值，默认是 6px。
+    </li>
+    <li>
+        axis.ticks 指定的是生成的刻度的个数，如果不指定，则会自适应计算。（注意：如果指定的个数超出了自适应计算的个数，则不会再增加，因为太多的刻度可能会导致图标的可视化程度降低。）
+    </li>
+    <li>
+        axis.tickArguments([ticks, tickFormat]) 指定的是比例尺（如果有 ticks 和 tickFormat API）的话，给对应的比例尺指定这两个参数。
+    </li>
+    <li>
+        axis.tickValues 指定的是刻度的具体值，这个值是一个希望显示的写死的刻度数组。当指定了刻度值以后，会自动计算出相应的刻度的位置。
+    </li>
+    <li>
+        axis.tickFormat 指定刻度提示文字的格式化显示的固定文字或者字符串。
+    </li>
+</ul>
+<h3>
+    坐标轴
+</h3>
+<p>
+    D3 中的坐标轴可以分为两大类，竖向的（y轴）坐标轴和横向的（x轴）坐标轴
+</p>
+<ul>
+    <li>
+        先看 x 轴， x 轴的两种主要在于刻度朝向的区别 d3.axisTop 刻度朝上； d3.axisBottom 刻度朝下
+    </li>
+    <svg id="zhou" height="600" width="600" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
+    <script>
+        const zhouSvg = d3.select("#zhou");
+
+        const zhouData = [10,25,60,45,80,20];
+
+        // 创建比例尺
+        const linear = d3.scaleLinear()
+                        .domain([d3.min(zhouData), d3.max(zhouData)])
+                        .range([0, 400])
+
+        // 创建坐标轴 (刻度向上)
+        const zhouXT = d3.axisTop(linear)
+    </script>
+    <svg id="zhou1" height="600" width="600" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
+    <script>
+         const zhouXT = d3.axisBottom(linear)
+    </script>
+</ul>
+
