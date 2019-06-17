@@ -345,6 +345,29 @@ x(100); // 30
     使用 continuous.exponent(number) 指定函数对应的幂指数。 
 </p>
 <svg id="scalePow" height="100" width="500" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
+<script>
+    const scalePow = d3.scalePow()
+                    .domain([30, 50])
+                    .range([0,400])
+const scalePow1 = d3.select("#scalePow");
+const scaleg1 = scalePow1
+            .selectAll("g")
+            .data([30, 32, 34, 40, 45, 50])
+            .enter()
+            .append("g")
+scaleg1.append("circle")
+        .attr("r", 5)
+        .attr("cx", d => scalePow(d) + 25)
+        .attr("cy", 50)
+        .attr("fill", "#f60")
+scaleg1.append("text")
+        .text(d => d)
+        .attr("fill", "#333")
+        .attr("transform", d =>"translate(" + (scalePow(d) + 15) +" ,70)")
+</script>
+<p>
+    实现代码如下：
+</p>
 {% highlight javascript %}
 
 const scalePow = d3.scalePow()
