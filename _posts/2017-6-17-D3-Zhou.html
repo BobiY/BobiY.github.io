@@ -108,10 +108,10 @@ tags:
                .attr("transform", "translate(20, 20)")
                .text("axisLeft")
     </script>
-    <svg id="zhou3" height="100" width="600" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
+    <svg id="zhou3" height="600" width="100" style="border: 1px solid #333; margin: 25px;overflow: visible;"></svg>
     <script>
         const zhouSvg3 = d3.select("#zhou3");
-         const zhouYR = d3.axisBottom(linear);
+         const zhouYR = d3.axisRight(linear);
          zhouSvg3.append("g")
                 .attr("transform", "translate(50, 50)")
                 .call(zhouYR)
