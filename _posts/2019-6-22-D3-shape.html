@@ -1,0 +1,287 @@
+---
+layout: post
+title: D3-shape(基本图形处理)
+category: D3js
+subtitle: D3-shape
+tags:
+    - D3js
+    - 前端开发
+---
+<h2>{{ page.title }}</h2>
+<blockquote>
+    <P>D3-shape(基本图形处理)</P>
+</blockquote>
+<p>{{ page.date | date_to_string }}</p>
+<p>注意： 采用的 D3 版本是 V5 </p>
+<p>
+    D3-shape 主要是为了将输入的数据转换成可以进行做图的数据；比如，生成一个饼图每个部分的必要角度信息，生成折线图的完整 path路径 (这里 path 指的是 svg 中的 path 的 d 属性值)。
+</p>
+<p>
+    下面将对 D3 支持的 shape 
+</p>
+<h3>
+    Arcs( 弧 )
+</h3>
+<p>
+    弧生成器主要用于根据输入的弧的起始角度去生成完整弧的路径，此路径可用于 path 的 d 属性值，这样就很方便的做出想要的饼图。但是， arcs 是不能自己将数据转换成画图的数据，需要 pie 的配合，pie 将在后面讲解，这里先看 arcs 的使用。
+</p>
+<h5>
+    d3.arc()
+</h5>
+<p>
+    弧生成器，用于生成一段弧，如果不输入任何的参数，将会输入出一个整圆的 path。下面是默认参数：
+</p>
+{% highlight javascript %}
+
+const arc = d3.arc({
+    innerRaduis: 0,
+    outerRadius: 100,
+    startAngle: 0,
+    endAngle: Math.PI * 2
+})
+
+// 这时圆弧就是一个半径为 100 的圆，arc = “M0，-100A100,100,0,0,1,100,0L0,0Z”；
+{% endhighlight %}
+<h4>
+    下面是参数的具体解释：
+</h4>
+<h5>
+    arc.centroid(argument)
+</h5>
+<p>
+    输入 arc 的上述参数，将获得这个弧的中心位置，这个中心指的不是弧的几何中心，而是方便在饼图上给一段饼图添加描述性文字的中心。不输入参数的话，为返回当前弧的中心。
+</p>
+<h5>
+    arc.innerRadius( number )
+</h5>
+<p>
+    设置圆弧的内半径，当你需要的饼图非实心是可以设置。默认值是 0。
+</p>
+<h5>
+    arc.outerRadius( number )
+</h5>
+<p>
+    给饼图设置外半径，指的是饼图的最外围的圆的半径。默认值是 100。
+</p>
+<h5>
+    arc.cornerRadius( number )
+</h5>
+<p>
+    设置饼图的圆角，把每个饼图想像成一个方块，这个属性就是设置四个角的圆角的半径。默认值是 0.
+</p>
+<h5>
+    arc.startAngle( 弧度值 )
+</h5>
+<p>
+    设置弧的开始弧度值。注意： 圆弧的 0 度线在 12 点方向，顺时针方向为正方向。
+</p>
+<h5>
+    arc.endAngle( 弧度值 )
+</h5>
+<p>
+    设置弧的结束弧度值。
+</p>
+<h5>
+    arc.padAngle( 弧度值 )
+</h5>
+<p>
+    设置每个饼图的 padAngle，相当于给 div 设置左右的 padding 值，指的是和左右两边相邻饼图的距离。（默认值是 0）
+</p>
+<h5>
+    arc.padRadius( number )
+</h5>
+<p>
+    如果设置了这个值，就会和 padAngle 一起计算出每个饼图的左右 padding 值，然后会均匀的分布在当前饼图的两端。如果没有指定，padAngle 会和设定的内外径一起计算出左右 padding。
+</p>
+<h5>
+    arc.content( svg OR canvas )
+</h5>
+<p>
+    指定要生成的路径是要在 svg 图形或者 canvas 图形中使用。默认 svg， 如果想在 canvas 中使用，将 content 设置为 canvas 元素即可。
+</p>
+
+<h3>
+    Pies
+</h3>
+<p>
+    pie 主要是将输入的原始数据转换成 arc 可以使用的具有开始角度结束角度以及其他必要信息的数据。（这里注意：直接会在输入的数组中每项添加以下属性，如果想要保留源数据，要自行复制保存。）
+</p>
+<p>
+    以下是 pie 中涉及的相关属性设置
+</p>
+<h5>
+    d3.pie( data[, argument] )
+</h5>
+<p>
+    接受的 data 可能如下：
+</p>
+{% highlight javascript %}
+
+let data = [1, 1, 2, 3, 5, 8, 13, 21];
+const arcs = d3.pie()(data);
+
+// 经过 pie 加工后，返回 data 会变成如下结构：
+
+data = [
+    {"data":  1, "value":  1, "index": 6, "startAngle": 6.050474740247008, "endAngle": 6.166830023713296, "padAngle": 0},
+    {"data":  1, "value":  1, "index": 7, "startAngle": 6.166830023713296, "endAngle": 6.283185307179584, "padAngle": 0},
+    {"data":  2, "value":  2, "index": 5, "startAngle": 5.817764173314431, "endAngle": 6.050474740247008, "padAngle": 0},
+    {"data":  3, "value":  3, "index": 4, "startAngle": 5.468698322915565, "endAngle": 5.817764173314431, "padAngle": 0},
+    {"data":  5, "value":  5, "index": 3, "startAngle": 4.886921905584122, "endAngle": 5.468698322915565, "padAngle": 0},
+    {"data":  8, "value":  8, "index": 2, "startAngle": 3.956079637853813, "endAngle": 4.886921905584122, "padAngle": 0},
+    {"data": 13, "value": 13, "index": 1, "startAngle": 2.443460952792061, "endAngle": 3.956079637853813, "padAngle": 0},
+    {"data": 21, "value": 21, "index": 0, "startAngle": 0.000000000000000, "endAngle": 2.443460952792061, "padAngle": 0}
+] 
+{% endhighlight %}
+<ul>
+    <p>
+        生成的数据每一项的含义如下：
+    </p>
+    <li>
+        data: 输入的数组的当前项的原始数据
+    </li>
+    <li>
+        value: 根据原始数据中的那个数据生成的弧的信息（上例中这个值与 data 相同）
+    </li>
+    <li>
+        index：当前弧在生成的所有弧中的排序
+    </li>
+    <li>
+        startAngle: 弧的开始角度
+    </li>
+    <li>
+        endAngle: 弧的结束角度
+    </li>
+    <li>
+        padAngle: 弧的垫角（与 arc 中的 padAngle 的含义相同）
+    </li>
+</ul>
+<h5>
+    pie.value( [ value ] )
+</h5>
+<p>
+    设定生成弧的元数据来自于输入数据中的具体那个属性值。如果输入的是数字数组，则直接使用每一项的值，如果是对象数组。则需要指定该项，可能是如下的形式指定：
+</p>
+{% highlight javascript %}
+
+pie.value( d => d.somePropsName );
+
+{% endhighlight %}
+<h5>
+    d3.sort( sortFun )
+</h5>
+<p>
+    指定弧的排序规则，默认是按照数据在数组中的顺序。使用规则和 Array.sort() 一致，下面是官方给出的使用案例：
+</p>
+{% highlight javascript %}
+
+pie.sort(function(a, b) { return a.name.localeCompare(b.name); });
+
+{% endhighlight %}
+<p>
+    此排序规则是先对数组元素排序，然后生成每个数据对应的弧度信息。使用的是输入的数组的原始数据进行的排序（也就是 data 项）
+</p>
+<h5>
+    d3.sortValue( sortFun )
+</h5>
+<p>
+    指定弧的排序函数，这个排序是对 value（为具体的数字） 项进行的排序，然后在生成弧的信息。所以，此项的函数入下
+</p>
+
+{% highlight javascript %}
+
+pie.sort(function compare(a, b) {
+    return b - a;
+});
+
+{% endhighlight %}
+<h5>
+    pie.startAngle( 弧度 )
+</h5>
+<p>
+    指定开始弧度，当你不是从 0 度开始画圆时，可以使用此选项去配置开始弧度值。
+</p>
+<h5>
+    pie.endAngle( 弧度 )
+</h5>
+<p>
+    指定结束弧度，当你不是以 Math.PI * 2 结束时，可以自定义指定结束弧度。
+</p>
+<h5>
+    pie.padAngle( 弧度 )
+</h5>
+<p>
+    指定每个生成弧的垫交的值，这个值与 arc 中的垫角值意义一致。
+</p>
+<h3>
+    Lines
+</h3>
+<p>
+    lines 生成器生成样条线或折线。
+</p>
+<h5>
+    d3.line( [data] )
+</h5>
+<p>
+    获得一个线条生成器。
+</p>
+<h5>
+    line.x( d => d.x)
+</h5>
+<p>
+    指定线条的 x 轴数据怎么获得，折线图一般是在坐标系中使用，所以通常会通过映射关系将 x 坐标进行转换。
+</p>
+<h5>
+    line.y( d => d.y )
+</h5>
+<p>
+    指定线条的 y 轴数据怎么获得。
+</p>
+<p>
+    下面是一个完整的使用示例：
+</p>
+{% highlight javascript %}
+
+const data = [
+  {date: new Date(2007, 3, 24), value: 93.24},
+  {date: new Date(2007, 3, 25), value: 95.35},
+  {date: new Date(2007, 3, 26), value: 98.84},
+  {date: new Date(2007, 3, 27), value: 99.92},
+  {date: new Date(2007, 3, 30), value: 99.80},
+  {date: new Date(2007, 4,  1), value: 99.47},
+];
+
+const line = d3.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.value); });
+
+{% endhighlight %}
+<p>
+    设定好 line 的配置以后，将 data 传递给 line，就会获得一个完整的 path 的 d 属性的路径信息，可以直接做图（也可以是 canvas，只要设定了 content）
+</p>
+<h5>
+    line.defined( function )
+</h5>
+<p>
+    默认情况下，如果数据存在问题，比如某一项是 null，这时就获取不到需要显示的路径信息，这时指定 defined 将这些数据忽略掉，就能获得路径，但是会在缺失数据处出现断层。 
+</p>
+{% highlight javascript %}
+
+line.defined( function(d) { return d; } )
+
+{% endhighlight %}
+<p>
+    函数最终返回一个 boolean 值，false 表示忽略这个值。
+</p>
+<h5>
+    line.curve( [ curve ] )
+</h5>
+<p>
+    指定连线的类型，这个涉及的东西较多，将在线型一节中集中讲解
+</p>
+<h5>
+    line.context( svg or canvas )
+</h5>
+<p>
+    指定画图的画板，默认是 svg， 可选的是 canvas。
+</p>
