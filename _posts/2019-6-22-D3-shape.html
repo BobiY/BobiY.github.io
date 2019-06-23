@@ -285,3 +285,319 @@ line.defined( function(d) { return d; } )
 <p>
     指定画图的画板，默认是 svg， 可选的是 canvas。
 </p>
+<h4>
+    d3.lineRadial()
+</h4>
+<p>
+    lineRadial 是用来画多边形时使用的，这个图形的形状贴近于经常使用的雷达图。可以是画雷达图时进行使用。
+</p>
+<h5>
+    lineRadial(data)
+</h5>
+<p>
+    lineRadial 使用的数据结构和 line 是一致的，然后根据数据和具体设置返回完整的 path，以方便进行画图。
+</p>
+<p>
+    有一点需要注意的是，D3 中的 0 度是从 12 点方向开始，正常的 canvas 的 0 度是在 3 点方向的，两者相差了 10 度。所以在使用不容的画布时要注意。
+</p>
+<h5>
+    lineRadial.angle( 弧度 )
+</h5>
+<p>
+    设置当前的径向线需要跨过的弧度值，这个值类似于 line.x , 可以设定为函数，确定在传入的数据中获取 angle 的值怎么获取。
+</p>
+<h5>
+    lineRadial.redius( number )
+</h5>
+<p>
+    设置径向线的半径，这个值类似于 line.y, 可以设定为函数，确定在传入的数据中获取 radius 的值怎么获取。
+</p>
+<h5>
+    lineRadial.defined( d => boolean )
+</h5>
+<p>
+    和 line 一致，确定当数据不存在时要不要忽略。
+</p>
+<h5>
+    lineRadial.curve()
+</h5>
+<p>
+    主要用于确定线型，将会有专门的章节进行讲解。
+</p>
+<h5>
+    lineRadial.context()
+</h5>
+<p>
+    设定画板上下文，可选的是 canvas，默认是 svg。
+</p>
+<h3>
+    Areas(区域)
+</h3>
+<p>
+    区域可以理解为四条线围成的区域，相当于在折线图上的加工。
+</p>
+<h4>
+    d3.area()
+</h4>
+<p>
+    返回一个区域生成器。
+</p>
+<h5>
+    area(data)
+</h5>
+<p>
+    根据传入的数据和设定，返回数据形成的区域 path。
+</p>
+<h5>
+    area.x()
+</h5>
+<p>
+    设定区域边线的 x 怎么样取值。
+</p>
+<h5>
+    area.x0()
+</h5>
+<p>
+    设定区域最底部线上的点怎么样取值。（默认是 x 轴，对应的线就是 y = 0）x0 和 y0 的取值共同确定了区域的最低线的线条的 path 应该是什么样子的。x 和 x0 的取值是一样的，他们只要有一个设定，就会覆盖另一个，如果都不指定，则是 d => d[0]
+</p>
+<p>
+    下面是一个简单的使用案例：
+</p>
+{% highlight javascript %}
+
+const data = [
+  {date: new Date(2007, 3, 24), value: 93.24},
+  {date: new Date(2007, 3, 25), value: 95.35},
+  {date: new Date(2007, 3, 26), value: 98.84},
+  {date: new Date(2007, 3, 27), value: 99.92},
+  {date: new Date(2007, 3, 30), value: 99.80},
+  {date: new Date(2007, 4,  1), value: 99.47},
+];
+
+const area = d3.area()
+    .x(function(d) { return x(d.date); })
+    .y1(function(d) { return y(d.value); })
+    .y0(y(0));
+
+area(data)
+{% endhighlight %}
+<h5>
+    area.x1()
+</h5>
+<p>
+    x1 确定的是每个点的 x 的另一条边线的取值。（ 通过调整 x 和 x1 的大小，是可以调整区域上的图的朝向 ）
+</p>
+<h5>
+    area.y() 和 area.x0()
+</h5>
+<p>
+    与 x 和 x0 一样， y 和 y0 的取值是一样的，这两个值确定了区域的一条边线的 y 坐标。
+</p>
+<h5>
+    area.y1()
+</h5>
+<p>
+    与 x1 一样， y1 区域的另一条边线的 y 坐标。
+</p>
+<h5>
+    四条边线的方程
+</h5>
+<ul>
+    <li>areaA.lineX0 范围一个当前 area 的 x0 对应的 line 生成器（使用规则与 line 相同）</li>
+    <li>areaA.lineX1 范围一个当前 area 的 x1 对应的 line 生成器（使用规则与 line 相同）</li>
+    <li>areaA.lineY0 范围一个当前 area 的 y0 对应的 line 生成器（使用规则与 line 相同）</li>
+    <li>areaA.lineY1 范围一个当前 area 的 y1 对应的 line 生成器（使用规则与 line 相同）</li>
+</ul>
+<h5>
+    area.context()
+</h5>
+<p>
+    设置画布上下文对象，可选的是 canvas, 默认是 svg。
+</p>
+<h3>
+    Links
+</h3>
+<p>
+    links 用于计算两个点之间的连线的 path，主要是配合 layout tree 进行线条绘制。
+</p>
+<h4>
+    d3.linkVertical()
+</h4>
+<p>
+    用于计算垂直布局的 tree 的点之间的连线数据。
+</p>
+<h4>
+    d3.linkHorizontal()
+</h4>
+<p>
+    用于计算水平布局的 tree 的点之间的连线数据。
+</p>
+<h5>
+    link(arguments)
+</h5>
+<p>
+    根据传入的参数，计算出适合的连线 path 。
+</p>
+{% highlight javascript %}
+
+link({
+    source: [100, 100],
+    target: [300, 300]
+});
+
+{% endhighlight %}
+<h5>
+    link.source()
+</h5>
+<p>
+    指定 source 数据获取的方式。
+</p>
+<h5>
+    link.target()
+</h5>
+<p>
+    指定 target 数据的获取的方式。
+</p>
+<h5>
+    link.x()
+</h5>
+<p>
+    指定 source 和 target 的 x 坐标的获取方式。
+</p>
+<h5>
+    link.y()
+</h5>
+<p>
+    指定 source 和 target 的 y 坐标的获取方式。
+</p>
+<h5>
+    link.context()
+</h5>
+<p>
+    设置画布的上下文，可选的是 canvas,默认是 svg。
+</p>
+<h4>
+    d3.linkRadial()
+</h4>
+<p>
+    计算的出径向连线的数据。
+</p>
+<h5>
+    linkRadial.angle()
+</h5>
+<p>
+    相当于  link.x()
+</p>
+<h5>
+    linkRadial.radius()
+</h5>
+<p>
+    相当于 link.y()
+</p>
+<p>
+    linkRadial 其他设置项和 link 一样。都可以使用。
+</p>
+<h3>
+    Stacks
+</h3>
+<p>
+    这个会计算出叠图需要的数据，来绘制比如叠柱图，和区域叠图。
+</p>
+<h4>
+    d3.stack()
+</h4>
+<p>
+    返回一个计算叠图的生成器。
+</p>
+<h5>
+    stack(data)
+</h5>
+<p>
+    根据输入的数据，计算出叠图需要的数据，看下面例子：
+</p>
+{% highlight javascript %}
+
+const data = [
+  {month: new Date(2015, 0, 1), apples: 3840, bananas: 1920, cherries: 960, dates: 400},
+  {month: new Date(2015, 1, 1), apples: 1600, bananas: 1440, cherries: 960, dates: 400},
+  {month: new Date(2015, 2, 1), apples:  640, bananas:  960, cherries: 640, dates: 400},
+  {month: new Date(2015, 3, 1), apples:  320, bananas:  480, cherries: 640, dates: 400}
+];
+
+const stack = d3.stack()
+    .keys(["apples", "bananas", "cherries", "dates"])
+    .order(d3.stackOrderNone)
+    .offset(d3.stackOffsetNone);
+
+const series = stack(data);
+
+// 下面是返回的数据
+[
+  [[   0, 3840], [   0, 1600], [   0,  640], [   0,  320]], // apples
+  [[3840, 5760], [1600, 3040], [ 640, 1600], [ 320,  800]], // bananas
+  [[5760, 6720], [3040, 4000], [1600, 2240], [ 800, 1440]], // cherries
+  [[6720, 7120], [4000, 4400], [2240, 2640], [1440, 1840]], // dates
+]
+{% endhighlight %}
+<h5>
+    stack.keys()
+</h5>
+<p>
+    设置 keys 获取的方式。
+</p>
+<h5>
+    stack.value()
+</h5>
+<p>
+    对应于每个 key 获取相应 key 值的获取方式。可以设置忽略某些值时使用。
+</p>
+<h5>
+    stack.order()
+</h5>
+<p>
+    对数据进行排序，D3 中提供了一些排序规则。看下面的例子：
+</p>
+{% highlight javascript %}
+
+function orderNone(series) {
+    var n = series.length, o = new Array(n);
+    while (--n >= 0) o[n] = n;
+    return o;
+}
+// 这时默认排序规则
+{% endhighlight %}
+<h5>
+    stack.offset([offset]) 
+</h5>
+<p>
+    指定偏移量的计算方式。看下面的默认例子：
+</p>
+{% highlight javascript %}
+
+function offsetNone(series, order) {
+    if (!((n = series.length) > 1)) return;
+    for (var i = 1, s0, s1 = series[order[0]], n, m = s1.length; i < n; ++i) {
+      s0 = s1, s1 = series[order[i]];
+      for (var j = 0; j < m; ++j) {
+        s1[j][1] += s1[j][0] = s0[j][1];
+      }
+    }
+}
+
+{% endhighlight %}
+
+<!-- <h3>
+    order 可以使用的排序规则
+</h3>
+<p>
+    注意，以下的排序应该传递给 order 作为参数。
+</p>
+<h4>
+    d3.stackOrderAppearance（series）
+</h4>
+<p>
+    使最早出现的值位于底部，也就是按照原始顺序排列。
+</p>
+<h4>
+
+</h4> -->
