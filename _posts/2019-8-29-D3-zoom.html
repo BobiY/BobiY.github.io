@@ -1,0 +1,56 @@
+---
+layout: post
+title: D3-ZOOM 
+category: D3js
+subtitle: D3.zoom
+tags:
+    - D3js
+    - 前端开发
+---
+<h2>{{ page.title }}</h2>
+<blockquote>
+    <P>D3-ZOOM 用于对元素进行缩放和平移</P>
+</blockquote>
+<p>{{ page.date | date_to_string }}</p>
+<div>D3.zoom 是 D3 提供的集缩放和平移功能的 API 使用滚轮缩放，使用鼠标拖拽元素实现平移</div>
+<ul>
+    <li>zoom 分两块只要内容</li>
+    <li>1. zoom 的平移和缩放的范围限制和行为的控制</li>
+    <li>2. zoom 的缩放和平移结果计算模块 Transform， 这个模块可以单独使用，用来计算在一定的平移和缩放后，画布内的各个点的变化</li>
+</ul>
+<p> zoom 的 API 有多个，下面列举的是日常使用中对与数据和图形的处理比较重要的 API。 </p>
+<ul>
+    <li>ZOOM</li>
+    <li>wheelDelta(callback) 自定义缩放行为的触发（默认是鼠标滚轮）回调的期望返回值是缩放的倍数</li>
+    <li>extent([[x0, y0],[x1, y1]]) 设置视窗的大小。（缩放和平移的行为实际是在视窗上发生的）</li>
+    <li>scaleExtent([scaleMin, scaleMax]) 设置缩放的范围</li>
+    <li>translateExtent([[x0, y0], [x1, 1]]) 设置平移的范围</li>
+    <li>constrain(transform, extent, translateExtent) 自定义计算怎么限制平移和缩放范围 （默认配置的有），期望的返回值是 Transform 对象</li>
+    <li>transform(collection, transform) 第一个参数是 dom 元素或者集合，canvas 的话就是其本身，但是需要用 D3.select 获取。</li>
+    <li>transform 是 Transform 的实例。将自定义的 k， x， y 应用于 当前的缩放（可以用 d3.zoomIdentity k=1, x=0, y=0重置当前的缩放）</li>
+</ul>
+<p>
+    其中 zoom.constrain( callback ), callback 的参数与 constrain 接受的参数一致。transform 是当前 zoom 对象拥有的 Transform 对象的事例。extent 是设置视窗范围。translateExtent 是设置好的平移的范围。
+</p>
+<p>
+    callback 期望的返回值是 Transform 对象。 而参数 transform 本身就是 Transform 对象事例。这个参数使用默认的就好，自己指定的话，需要对 zoom 有一定的了解。
+</p>
+<ul>
+    <li>Transform 计算缩放和平移的最终数据</li>
+    <li>constructor(k, x, y) 构造函数，k 是缩放倍数 ，x 平移的横向距离， y 平移的纵向距离</li>
+    <li>scale(k) 返回 Transform 的实例，返回的 Transform 表示的是在现有基础上再放大多少倍</li>
+    <li>translate(x, y) 返回 Transform 的实例，返回的 Transform 表示的是在现有平移和放大倍数的基础上在进行的平移</li>
+    <li>apply(point) 根据当前平移和缩放倍数计算出输入点在应用了这些变换后的坐标  eg: [x,y] -> [x1,y1]</li>
+    <li>applyX(x) 与 apply 意义一致，只用来计算横坐标</li>
+    <li>applyY(y) 与 apply 意义一致，只用来计算纵坐标</li>
+    <li>invert([x,y]) 输入的坐标是已经应用了当前缩放和平移的坐标，返回的是应用这些变换之前的坐标</li>
+    <li>invertX(x) 用法和意义与 invert 一致，只用来计算 横坐标</li>
+    <li>invertY(y) 用法和意义与 invert 一致，只用来计算 纵坐标</li>
+    <li>rescaleX(scale) 根据现有的缩放和平移重置输入的横轴的 domain 数据范围，以改变轴的刻度</li>
+    <li>rescaleY(scale) 根据现有的缩放和平移重置输入的纵轴的 domain 数据范围，以改变轴的刻度</li>
+    <li>toString() 根据当前的平移和缩放，拼接出标准的 css3 的可用变换属性</li>
+</ul>
+<p>可以不依赖 D3.zoom 只是用 Transform 完全自定义缩放和平移的行为</p>
+<p>当前 zoom 的 Transform 在 D3.event.transform 上可以访问到所有属性和方法</p>
+
+
