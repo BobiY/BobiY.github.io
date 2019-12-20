@@ -104,7 +104,7 @@ eval("exports = module.exports = __webpack_require__(/*! ../node_modules/_css-lo
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("exports = module.exports = __webpack_require__(/*! ../node_modules/_css-loader@3.3.0@css-loader/dist/runtime/api.js */ \"./node_modules/_css-loader@3.3.0@css-loader/dist/runtime/api.js\")(false);\n// Module\nexports.push([module.i, \"#root{\\r\\n    width: 187%;\\r\\n    margin-left: -182px;\\r\\n}\\r\\n.app{\\r\\n    width: 60%;\\r\\n    margin: 100px auto;\\r\\n}\\r\\n.app .fixed-menu{\\r\\n    position: fixed;\\r\\n    top: 65px;\\r\\n    border: 1px solid #333;\\r\\n    left: 152px;\\r\\n    padding: 20px;\\r\\n}\", \"\"]);\n\n\n//# sourceURL=webpack:///./src/index.css?./node_modules/_css-loader@3.3.0@css-loader/dist/cjs.js");
+eval("exports = module.exports = __webpack_require__(/*! ../node_modules/_css-loader@3.3.0@css-loader/dist/runtime/api.js */ \"./node_modules/_css-loader@3.3.0@css-loader/dist/runtime/api.js\")(false);\n// Module\nexports.push([module.i, \"#root{\\r\\n    width: 290%;\\r\\n    margin-left: -554px;\\r\\n}\\r\\n.app{\\r\\n    width: 60%;\\r\\n    margin: 100px auto;\\r\\n}\\r\\n.app .fixed-menu{\\r\\n    position: fixed;\\r\\n    top: 65px;\\r\\n    border: 1px solid #333;\\r\\n    left: 152px;\\r\\n    padding: 20px;\\r\\n}\", \"\"]);\n\n\n//# sourceURL=webpack:///./src/index.css?./node_modules/_css-loader@3.3.0@css-loader/dist/cjs.js");
 
 /***/ }),
 
